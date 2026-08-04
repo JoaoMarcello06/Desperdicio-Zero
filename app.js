@@ -1,23 +1,21 @@
 // -------------------------------------------------------------
-// CONFIGURAÇÃO DO FIREBASE
-// Cole aqui o objeto firebaseConfig que apareceu na tela do Firebase:
+// CONFIGURAÇÃO DO FIREBASE (Coloque suas chaves aqui)
 // -------------------------------------------------------------
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyC8B3XunC9USG4zUK6R30jaCZbaB4VPrDI",
-  authDomain: "desperdiciozero-9da8e.firebaseapp.com",
-  projectId: "desperdiciozero-9da8e",
-  storageBucket: "desperdiciozero-9da8e.firebasestorage.app",
-  messagingSenderId: "671256144069",
-  appId: "1:671256144069:web:8546141f903dfaee5968ac",
-  measurementId: "G-4G5V639EEQ"
+    apiKey: "SUA_API_KEY_AQUI",
+    authDomain: "seu-projeto.firebaseapp.com",
+    projectId: "seu-projeto-id",
+    storageBucket: "seu-projeto.appspot.com",
+    messagingSenderId: "000000000000",
+    appId: "1:000000000000:web:000000000000"
 };
 
-// Inicializar o Firebase e o Banco Firestore
+// Inicializar Firebase, Firestore e Storage
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const storage = firebase.storage();
 
-// Referências aos elementos do HTML
+// Referências
 const imageInput = document.getElementById('imageInput');
 const loading = document.getElementById('loading');
 const productForm = document.getElementById('productForm');
@@ -25,15 +23,17 @@ const productNameInput = document.getElementById('productName');
 const expiryDateInput = document.getElementById('expiryDate');
 const inventoryList = document.getElementById('inventoryList');
 
-// 1. Visão Computacional (OCR)
+let selectedFile = null; // Guarda o arquivo da foto selecionada
+
+// 1. Visão Computacional (OCR) ao escolher/tirar foto
 imageInput.addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    selectedFile = event.target.files[0];
+    if (!selectedFile) return;
 
     loading.classList.remove('hidden');
     productForm.classList.add('hidden');
 
-    Tesseract.recognize(file, 'por', { logger: m => console.log(m) })
+    Tesseract.recognize(selectedFile, 'por', { logger: m => console.log(m) })
     .then(({ data: { text } }) => {
         loading.classList.add('hidden');
         productForm.classList.remove('hidden');
@@ -41,35 +41,54 @@ imageInput.addEventListener('change', function(event) {
         productNameInput.value = text.substring(0, 30).replace(/\n/g, ' ');
     }).catch(err => {
         loading.classList.add('hidden');
-        alert("Erro ao ler a imagem. Por favor, digite manualmente.");
+        alert("Erro ao ler a imagem. Digite manualmente.");
         productForm.classList.remove('hidden');
     });
 });
 
-// 2. SALVAR no Banco de Dados (Firebase Firestore)
-productForm.addEventListener('submit', function(e) {
+// 2. Salvar Produto + Enviar Foto para o Firebase Storage
+productForm.addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    let imageUrl = '';
+
+    // Se houver uma foto tirada, faz o upload para o Firebase Storage
+    if (selectedFile) {
+        try {
+            loading.classList.remove('hidden');
+            loading.querySelector('p').innerText = "⏳ Salvando foto no banco de dados...";
+
+            const fileRef = storage.ref(`produtos/${Date.now()}_${selectedFile.name}`);
+            await fileRef.put(selectedFile);
+            imageUrl = await fileRef.getDownloadURL(); // Pega o link público da imagem
+        } catch (error) {
+            console.error("Erro ao enviar imagem: ", error);
+        }
+    }
 
     const newProduct = {
         name: productNameInput.value,
         expiry: expiryDateInput.value,
+        imageUrl: imageUrl, // Salva o link da foto no produto
         createdAt: new Date().toISOString()
     };
 
-    // Salva na coleção "produtos" do Firebase
+    // Salva os dados no Firestore
     db.collection("produtos").add(newProduct)
     .then(() => {
         productForm.reset();
+        selectedFile = null;
+        loading.classList.add('hidden');
         productForm.classList.add('hidden');
-        alert("Produto salvo no banco de dados com sucesso!");
+        alert("Produto e foto salvos com sucesso!");
     })
     .catch((error) => {
-        console.error("Erro ao salvar no Firebase: ", error);
+        loading.classList.add('hidden');
+        console.error("Erro ao salvar dados: ", error);
     });
 });
 
-// 3. MOSTRAR ESTOQUE (Atualização em Tempo Real)
-// Essa função ouve qualquer alteração no banco de dados automaticamente!
+// 3. Mostrar Estoque com Foto do Alimento
 function listenToInventory() {
     db.collection("produtos").onSnapshot((snapshot) => {
         inventoryList.innerHTML = '';
@@ -84,7 +103,6 @@ function listenToInventory() {
             products.push({ id: doc.id, ...doc.data() });
         });
 
-        // Ordenar pela data de validade mais próxima
         products.sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
 
         products.forEach(product => {
@@ -99,9 +117,15 @@ function listenToInventory() {
             const youtubeQuery = encodeURIComponent(`receita fácil com ${product.name}`);
             const youtubeLink = `https://www.youtube.com/results?search_query=${youtubeQuery}`;
 
+            // Exibe a imagem se ela existir
+            const imageHtml = product.imageUrl 
+                ? `<img src="${product.imageUrl}" alt="${product.name}" style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; margin-bottom:10px;">` 
+                : '';
+
             const itemDiv = document.createElement('div');
             itemDiv.className = 'inventory-item';
             itemDiv.innerHTML = `
+                ${imageHtml}
                 <h3>${product.name}</h3>
                 <p class="${urgencyClass}">📅 ${statusText} (${product.expiry.split('-').reverse().join('/')})</p>
                 <a href="${youtubeLink}" target="_blank" class="btn btn-youtube">
@@ -114,16 +138,9 @@ function listenToInventory() {
     });
 }
 
-// 4. DELETAR do Banco de Dados
+// 4. Deletar do Banco
 function deleteProduct(id) {
-    db.collection("produtos").doc(id).delete()
-    .then(() => {
-        console.log("Produto removido do banco.");
-    })
-    .catch((error) => {
-        console.error("Erro ao remover: ", error);
-    });
+    db.collection("produtos").doc(id).delete();
 }
 
-// Inicia a escuta em tempo real do banco de dados ao carregar a página
 listenToInventory();
