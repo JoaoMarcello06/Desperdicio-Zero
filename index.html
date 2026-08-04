@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desperdício Zero 🌿</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Importando o Tesseract.js para o OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>🌿 Desperdício Zero</h1>
+        <p>Inteligência contra o desperdício de alimentos</p>
+    </header>
+
+    <main>
+        <section class="card capture-section">
+            <h2>Cadastrar Novo Produto</h2>
+            <p>Tire uma foto do rótulo ou da data de validade:</p>
+            
+            <input type="file" id="imageInput" accept="image/*" capture="environment" class="file-input">
+            <label for="imageInput" class="btn btn-primary">📸 Abrir Câmera / Galeria</label>
+            
+            <div id="loading" class="hidden">
+                <p>⏳ Analisando imagem com Inteligência Artificial...</p>
+            </div>
+
+            <form id="productForm" class="hidden">
+                <label for="productName">Alimento Identificado:</label>
+                <input type="text" id="productName" placeholder="Ex: Leite Integral" required>
+
+                <label for="expiryDate">Data de Validade (Encontrada pelo OCR):</label>
+                <input type="date" id="expiryDate" required>
+
+                <button type="submit" class="btn btn-success">💾 Salvar no Estoque</button>
+            </form>
+        </section>
+
+        <section class="card inventory-section">
+            <h2>📦 Meu Estoque</h2>
+            <div id="inventoryList">
+                <!-- Os produtos salvos aparecerão aqui -->
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

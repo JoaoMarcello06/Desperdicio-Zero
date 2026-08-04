@@ -1,0 +1,132 @@
+:root {
+    --green-dark: #2e7d32;
+    --green-main: #4caf50;
+    --green-light: #e8f5e9;
+    --earth-brown: #5d4037;
+    --white: #ffffff;
+    --text-dark: #333333;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--green-light);
+    color: var(--text-dark);
+    padding-bottom: 2rem;
+}
+
+header {
+    background-color: var(--green-dark);
+    color: var(--white);
+    text-align: center;
+    padding: 2rem 1rem;
+    border-bottom: 5px solid var(--earth-brown);
+}
+
+header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+main {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+    border-left: 5px solid var(--green-main);
+}
+
+.card h2 {
+    color: var(--green-dark);
+    margin-bottom: 1rem;
+}
+
+/* Botões e Inputs */
+.file-input {
+    display: none;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 10px;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: var(--earth-brown);
+    color: var(--white);
+}
+
+.btn-primary:hover { background-color: #4b332c; }
+
+.btn-success {
+    background-color: var(--green-main);
+    color: var(--white);
+}
+
+.btn-success:hover { background-color: var(--green-dark); }
+
+.btn-youtube {
+    background-color: #c4302b;
+    color: var(--white);
+    font-size: 0.9rem;
+    padding: 8px;
+    margin-top: 10px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+input[type="text"], input[type="date"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Lista de Estoque */
+.inventory-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+}
+
+.inventory-item:last-child {
+    border-bottom: none;
+}
+
+.inventory-item h3 {
+    color: var(--earth-brown);
+    margin-bottom: 5px;
+}
+
+.urgency-high { color: #d32f2f; font-weight: bold; }
+.urgency-low { color: var(--green-dark); }
