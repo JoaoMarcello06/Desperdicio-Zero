@@ -3,40 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desperdício Zero 🌿</title>
+    <title>Desperdício Zero</title>
     <link rel="stylesheet" href="style.css">
-  <!-- 1. Firebase App (SEMPRE PRIMEIRO) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    
+    <!-- Tesseract.js (OCR) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
-<!-- 2. Firebase Auth (NECESSÁRIO PARA O CADASTRO FUNCIONAR) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-
-<!-- 3. Demais serviços -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 </head>
 <body>
-    <header>
-        <h1>🌿 Desperdício Zero</h1>
-        <p>Inteligência contra o desperdício de alimentos</p>
-        <div id="userHeader" class="hidden">
-            <span id="userEmail"></span>
-            <button id="logoutBtn" class="btn-sm">Sair 🚪</button>
+    
+    <!-- CABEÇALHO ELEGANTE -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="title-area">
+                <span class="eyebrow">CONTROLE DOMÉSTICO INTELIGENTE</span>
+                <h1>Desperdício<br>Zero</h1>
+            </div>
+            <div class="desc-area">
+                <p>Gestão de estoque doméstico e avisos automatizados para reduzir perdas antes que os alimentos vençam.</p>
+                <div id="userHeader" class="hidden">
+                    <span id="userEmail"></span>
+                    <button id="logoutBtn" class="btn-sm">Sair</button>
+                </div>
+            </div>
         </div>
     </header>
 
     <main>
-        <!-- TELA DE AUTENTICAÇÃO (LOGIN / REGISTRO) -->
+        <!-- TELA DE AUTENTICAÇÃO -->
         <section id="authSection" class="card">
-            <h2 id="authTitle">Entrar na sua Conta</h2>
+            <h2 id="authTitle" class="serif-title">Acesse sua Conta</h2>
             <form id="authForm">
-                <label for="authEmail">E-mail:</label>
+                <label>E-mail:</label>
                 <input type="email" id="authEmail" placeholder="seu@email.com" required>
-
-                <label for="authPassword">Senha:</label>
+                <label>Senha:</label>
                 <input type="password" id="authPassword" placeholder="******" required minlength="6">
-
-                <button type="submit" id="authSubmitBtn" class="btn btn-success">Entrar</button>
+                <button type="submit" id="authSubmitBtn" class="btn btn-primary">Entrar</button>
             </form>
             <p class="auth-toggle">
                 <span id="toggleText">Não tem uma conta?</span> 
@@ -44,49 +51,67 @@
             </p>
         </section>
 
-        <!-- APLICATIVO PRINCIPAL (APENAS PARA USUÁRIOS LOGADOS) -->
+        <!-- APLICATIVO PRINCIPAL (APÓS LOGIN) -->
         <div id="appSection" class="hidden">
-            <section class="card capture-section">
-                <h2>Cadastrar Novo Produto</h2>
-                <p>Tire uma foto do rótulo ou do alimento:</p>
+            
+            <!-- MENU DE ABAS -->
+            <nav class="tabs">
+                <button id="tabScanner" class="tab-btn active">Escanear com Câmera</button>
+                <button id="tabInventory" class="tab-btn">Seu Estoque Atual</button>
+            </nav>
+
+            <!-- ABA 1: ESCANEAR E CADASTRAR -->
+            <section id="viewScanner" class="card tab-content active-tab">
+                <div class="card-header">
+                    <h2 class="serif-title">Adicionar Produto</h2>
+                    <span class="badge">IA VISÃO</span>
+                </div>
+                <p class="subtitle">Aponte a câmera para o rótulo do produto. A IA identifica o item e a validade para evitar o desperdício.</p>
                 
-                <input type="file" id="imageInput" accept="image/*" capture="environment" class="file-input">
-                <label for="imageInput" class="btn btn-primary">📸 Abrir Câmera / Galeria</label>
+                <input type="file" id="imageInput" accept="image/*" capture="environment" class="file-input hidden">
                 
-                <div id="loading" class="hidden">
-                    <p>⏳ Processando...</p>
+                <!-- Caixa pontilhada estilo da imagem -->
+                <label for="imageInput" class="upload-box">
+                    <span class="upload-icon">📸</span>
+                    <p>Clique para escanear novo produto</p>
+                </label>
+                
+                <div id="loading" class="hidden loading-box">
+                    <p>⏳ Processando a imagem, aguarde...</p>
                 </div>
 
-                <form id="productForm" class="hidden">
-                    <label for="productName">Alimento Identificado:</label>
-                    <input type="text" id="productName" placeholder="Ex: Leite Integral" required>
-
-                    <label for="productDescription">Observação / Descrição extra (Opcional):</label>
-                    <input type="text" id="productDescription" placeholder="Ex: Aberto na geladeira, marca X">
-
-                    <label for="expiryDate">Data de Validade:</label>
-                    <input type="date" id="expiryDate" required>
-
-                    <button type="submit" class="btn btn-success">💾 Salvar na Minha Conta</button>
+                <form id="productForm" class="hidden form-spaced">
+                    <div class="form-group">
+                        <label>Alimento Identificado:</label>
+                        <input type="text" id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Observação (Opcional):</label>
+                        <input type="text" id="productDescription">
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Validade:</label>
+                        <input type="date" id="expiryDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Salvar no Estoque</button>
                 </form>
             </section>
 
-            <section class="card inventory-section">
-                <h2>📦 Meu Estoque</h2>
-                <div id="inventoryList">
-                    <!-- Produtos do usuário logado aparecem aqui -->
+            <!-- ABA 2: LISTA DE ESTOQUE -->
+            <section id="viewInventory" class="card tab-content hidden">
+                <h2 class="serif-title">Itens Cadastrados</h2>
+                <div id="inventoryList" class="inventory-grid">
+                    <!-- Produtos aparecem aqui -->
                 </div>
             </section>
         </div>
     </main>
 
-    <!-- JANELA DE DETALHES DO PRODUTO (MODAL) -->
+    <!-- MODAL (Mantido igual) -->
     <div id="detailModal" class="modal hidden">
         <div class="modal-content card">
             <span id="closeModal" class="close-btn">&times;</span>
-            <div id="modalBody">
-                <!-- Conteúdo dos detalhes preenchido via JavaScript -->
-            </div>
+            <div id="modalBody"></div>
         </div>
     </div>
 
