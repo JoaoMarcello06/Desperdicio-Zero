@@ -57,8 +57,7 @@ toggleAuthMode.addEventListener('click', (e) => {
     toggleText.innerText = isSignUp ? "Já tem uma conta?" : "Não tem uma conta?";
     toggleAuthMode.innerText = isSignUp ? "Faça login aqui" : "Cadastre-se aqui";
 });
-
-// Login ou Registro
+// Login ou Registro com alertas detalhados de erro
 authForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = authEmail.value;
@@ -66,11 +65,22 @@ authForm.addEventListener('submit', (e) => {
 
     if (isSignUp) {
         auth.createUserWithEmailAndPassword(email, password)
-            .then(() => alert("Conta criada com sucesso!"))
-            .catch(err => alert("Erro ao cadastrar: " + err.message));
+            .then((userCredential) => {
+                alert("🎉 Conta criada com sucesso!");
+            })
+            .catch(err => {
+                console.error("Erro no cadastro:", err);
+                alert("❌ Erro ao cadastrar:\nCódigo: " + err.code + "\nMensagem: " + err.message);
+            });
     } else {
         auth.signInWithEmailAndPassword(email, password)
-            .catch(err => alert("Erro ao entrar: " + err.message));
+            .then(() => {
+                alert("🎉 Login efetuado com sucesso!");
+            })
+            .catch(err => {
+                console.error("Erro no login:", err);
+                alert("❌ Erro ao entrar:\nCódigo: " + err.code + "\nMensagem: " + err.message);
+            });
     }
 });
 
