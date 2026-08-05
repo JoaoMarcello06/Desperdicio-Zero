@@ -6,13 +6,12 @@
     <title>Desperdício Zero 🌿</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- 1. Tesseract (OCR) -->
+    <!-- Tesseract.js (OCR) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
-    <!-- 2. Firebase BASE (Precisa vir PRIMEIRO!) -->
+    <!-- Firebase SDK (Na ordem correta de carregamento) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    
-    <!-- 3. Serviços do Firebase (Firestore e Storage) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 </head>
@@ -20,38 +19,76 @@
     <header>
         <h1>🌿 Desperdício Zero</h1>
         <p>Inteligência contra o desperdício de alimentos</p>
+        <div id="userHeader" class="hidden">
+            <span id="userEmail"></span>
+            <button id="logoutBtn" class="btn-sm">Sair 🚪</button>
+        </div>
     </header>
 
     <main>
-        <section class="card capture-section">
-            <h2>Cadastrar Novo Produto</h2>
-            <p>Tire uma foto do rótulo ou da data de validade:</p>
-            
-            <input type="file" id="imageInput" accept="image/*" capture="environment" class="file-input">
-            <label for="imageInput" class="btn btn-primary">📸 Abrir Câmera / Galeria</label>
-            
-            <div id="loading" class="hidden">
-                <p>⏳ Analisando imagem com Inteligência Artificial...</p>
-            </div>
+        <!-- TELA DE AUTENTICAÇÃO (LOGIN / REGISTRO) -->
+        <section id="authSection" class="card">
+            <h2 id="authTitle">Entrar na sua Conta</h2>
+            <form id="authForm">
+                <label for="authEmail">E-mail:</label>
+                <input type="email" id="authEmail" placeholder="seu@email.com" required>
 
-            <form id="productForm" class="hidden">
-                <label for="productName">Alimento Identificado:</label>
-                <input type="text" id="productName" placeholder="Ex: Leite Integral" required>
+                <label for="authPassword">Senha:</label>
+                <input type="password" id="authPassword" placeholder="******" required minlength="6">
 
-                <label for="expiryDate">Data de Validade (Encontrada pelo OCR):</label>
-                <input type="date" id="expiryDate" required>
-
-                <button type="submit" class="btn btn-success">💾 Salvar no Estoque</button>
+                <button type="submit" id="authSubmitBtn" class="btn btn-success">Entrar</button>
             </form>
+            <p class="auth-toggle">
+                <span id="toggleText">Não tem uma conta?</span> 
+                <a href="#" id="toggleAuthMode">Cadastre-se aqui</a>
+            </p>
         </section>
 
-        <section class="card inventory-section">
-            <h2>📦 Meu Estoque</h2>
-            <div id="inventoryList">
-                <!-- Os produtos salvos aparecerão aqui -->
-            </div>
-        </section>
+        <!-- APLICATIVO PRINCIPAL (APENAS PARA USUÁRIOS LOGADOS) -->
+        <div id="appSection" class="hidden">
+            <section class="card capture-section">
+                <h2>Cadastrar Novo Produto</h2>
+                <p>Tire uma foto do rótulo ou do alimento:</p>
+                
+                <input type="file" id="imageInput" accept="image/*" capture="environment" class="file-input">
+                <label for="imageInput" class="btn btn-primary">📸 Abrir Câmera / Galeria</label>
+                
+                <div id="loading" class="hidden">
+                    <p>⏳ Processando...</p>
+                </div>
+
+                <form id="productForm" class="hidden">
+                    <label for="productName">Alimento Identificado:</label>
+                    <input type="text" id="productName" placeholder="Ex: Leite Integral" required>
+
+                    <label for="productDescription">Observação / Descrição extra (Opcional):</label>
+                    <input type="text" id="productDescription" placeholder="Ex: Aberto na geladeira, marca X">
+
+                    <label for="expiryDate">Data de Validade:</label>
+                    <input type="date" id="expiryDate" required>
+
+                    <button type="submit" class="btn btn-success">💾 Salvar na Minha Conta</button>
+                </form>
+            </section>
+
+            <section class="card inventory-section">
+                <h2>📦 Meu Estoque</h2>
+                <div id="inventoryList">
+                    <!-- Produtos do usuário logado aparecem aqui -->
+                </div>
+            </section>
+        </div>
     </main>
+
+    <!-- JANELA DE DETALHES DO PRODUTO (MODAL) -->
+    <div id="detailModal" class="modal hidden">
+        <div class="modal-content card">
+            <span id="closeModal" class="close-btn">&times;</span>
+            <div id="modalBody">
+                <!-- Conteúdo dos detalhes preenchido via JavaScript -->
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
