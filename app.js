@@ -272,3 +272,31 @@ function deleteProduct(id) {
         });
     }
 }
+
+// -------------------------------------------------------------
+// CONTROLE DAS ABAS (TABS) - DESIGN NOVO
+// -------------------------------------------------------------
+const tabScanner = document.getElementById('tabScanner');
+const tabInventory = document.getElementById('tabInventory');
+const viewScanner = document.getElementById('viewScanner');
+const viewInventory = document.getElementById('viewInventory');
+
+if (tabScanner && tabInventory) {
+    tabScanner.addEventListener('click', () => {
+        tabScanner.classList.add('active');
+        tabInventory.classList.remove('active');
+        viewScanner.classList.add('active-tab');
+        viewScanner.classList.remove('hidden');
+        viewInventory.classList.remove('active-tab');
+        viewInventory.classList.add('hidden');
+    });
+
+    tabInventory.addEventListener('click', () => {
+        tabInventory.classList.add('active');
+        tabScanner.classList.remove('active');
+        viewInventory.classList.add('active-tab');
+        viewInventory.classList.remove('hidden');
+        viewScanner.classList.remove('active-tab');
+        viewScanner.classList.add('hidden');
+    });
+}
