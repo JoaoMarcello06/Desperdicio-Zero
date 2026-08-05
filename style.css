@@ -1,201 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+
 :root {
-    --green-dark: #2e7d32;
-    --green-main: #4caf50;
-    --green-light: #e8f5e9;
-    --earth-brown: #5d4037;
-    --white: #ffffff;
-    --text-dark: #333333;
+    --bg-color: #f6f4ee;
+    --card-bg: #ffffff;
+    --text-dark: #2a3d2e;
+    --text-muted: #6e7a71;
+    --accent-light: #e5eadc;
+    --primary-color: #3f5a45;
+    --danger: #b24c4c;
+    --border-color: #d1d6ce;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    background-color: var(--green-light);
+    background-color: var(--bg-color);
     color: var(--text-dark);
-    padding-bottom: 2rem;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    padding-bottom: 3rem;
 }
 
-header {
-    background-color: var(--green-dark);
-    color: var(--white);
-    text-align: center;
-    padding: 1.5rem 1rem;
-    border-bottom: 5px solid var(--earth-brown);
-    position: relative;
+/* Tipografia */
+.serif-title, h1 {
+    font-family: 'Lora', serif;
+    color: var(--text-dark);
 }
 
-header h1 {
-    font-size: 2rem;
-    margin-bottom: 0.3rem;
+/* Cabeçalho */
+.main-header {
+    padding: 3rem 1.5rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-#userHeader {
-    margin-top: 10px;
-    font-size: 0.9rem;
+.header-content {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
 }
 
-.btn-sm {
-    padding: 4px 10px;
-    background: #d32f2f;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
+.eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: block;
 }
 
-main {
-    max-width: 600px;
-    margin: 1.5rem auto;
-    padding: 0 1rem;
+.main-header h1 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    letter-spacing: -1px;
 }
+
+.desc-area {
+    max-width: 300px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+#userHeader { margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+
+/* Layout Base */
+main { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
 
 .card {
-    background: var(--white);
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.03);
     margin-bottom: 1.5rem;
-    border-left: 5px solid var(--green-main);
 }
 
-.card h2 {
-    color: var(--green-dark);
-    margin-bottom: 1rem;
+/* Abas (Tabs) */
+.tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
 }
 
-/* Formitarios e Entradas */
-.file-input { display: none; }
-
-.btn {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    text-align: center;
+.tab-btn {
+    background: none;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-muted);
     cursor: pointer;
-    transition: background 0.3s;
-    margin-top: 10px;
-    text-decoration: none;
+    padding: 10px 0;
+    position: relative;
+    transition: color 0.3s;
 }
 
-.btn-primary { background-color: var(--earth-brown); color: var(--white); }
-.btn-primary:hover { background-color: #4b332c; }
-
-.btn-success { background-color: var(--green-main); color: var(--white); }
-.btn-success:hover { background-color: var(--green-dark); }
-
-.btn-youtube {
-    background-color: #c4302b;
-    color: var(--white);
-    font-size: 0.9rem;
-    padding: 10px;
-    margin-top: 10px;
+.tab-btn.active { color: var(--text-dark); }
+.tab-btn.active::after {
+    content: ''; position: absolute; bottom: -6px; left: 0; width: 100%; height: 3px;
+    background: var(--primary-color); border-radius: 3px;
 }
 
-form {
+.tab-content { display: none; }
+.tab-content.active-tab { display: block; }
+
+/* Escanear / Upload Box */
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.badge { background: var(--bg-color); color: var(--primary-color); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.subtitle { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+.upload-box {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-input[type="text"], input[type="date"], input[type="email"], input[type="password"] {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-}
-
-.auth-toggle {
-    margin-top: 15px;
+    align-items: center;
+    justify-content: center;
+    height: 220px;
+    border: 2px dashed #b5b7b0;
+    border-radius: 12px;
+    background-color: #fbfbf9;
+    cursor: pointer;
+    transition: all 0.2s;
     text-align: center;
-    font-size: 0.95rem;
+    color: var(--text-muted);
 }
+.upload-box:hover { background-color: var(--accent-light); border-color: var(--primary-color); }
+.upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
 
-.auth-toggle a {
-    color: var(--green-dark);
-    font-weight: bold;
-}
+/* Formulários e Botões */
+.form-spaced { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 15px; }
+.form-group label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 5px; }
+input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
+
+.btn { padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-align: center; width: 100%; }
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:hover { background-color: #2a3d2e; }
+.btn-sm { padding: 6px 12px; font-size: 0.8rem; background: var(--text-muted); color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+/* Estoque (Grid) */
+.inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 1.5rem; }
+.inventory-item { background: var(--bg-color); border-radius: 12px; padding: 15px; cursor: pointer; }
+.inventory-item img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+.inventory-item h3 { font-size: 1.1rem; margin-bottom: 5px; }
 
 .hidden { display: none !important; }
 
-/* Cards de Estoque */
-.inventory-item {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 12px;
-    background: #fafafa;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.inventory-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.inventory-thumb {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 6px;
-    margin-bottom: 8px;
-}
-
-.urgency-high { color: #d32f2f; font-weight: bold; }
-.urgency-low { color: var(--green-dark); }
-
-/* MODAL DE DETALHES */
-.modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 1rem;
-}
-
-.modal-content {
-    position: relative;
-    max-width: 500px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    background: white;
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #666;
-    cursor: pointer;
-}
-
-.modal-img {
-    width: 100%;
-    max-height: 250px;
-    object-fit: contain;
-    border-radius: 8px;
-    background: #f0f0f0;
-    margin: 10px 0;
-}
+/* Modal */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; padding: 1rem; z-index: 1000; }
+.modal-content { max-width: 400px; width: 100%; position: relative; }
+.close-btn { position: absolute; right: 20px; top: 15px; font-size: 1.5rem; cursor: pointer; }
