@@ -1,13 +1,15 @@
 // =============================================================
 // 1. CONFIGURAÇÃO DO FIREBASE (MANTENHA SUAS CHAVES AQUI)
 // =============================================================
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY_AQUI",
-    authDomain: "SEU_PROJECT_ID.firebaseapp.com",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_PROJECT_ID.appspot.com",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SEU_APP_ID"
+  apiKey: "AIzaSyC8B3XunC9USG4zUK6R30jaCZbaB4VPrDI",
+  authDomain: "desperdiciozero-9da8e.firebaseapp.com",
+  projectId: "desperdiciozero-9da8e",
+  storageBucket: "desperdiciozero-9da8e.firebasestorage.app",
+  messagingSenderId: "671256144069",
+  appId: "1:671256144069:web:8546141f903dfaee5968ac",
+  measurementId: "G-4G5V639EEQ"
 };
 
 // Inicializa o Firebase se ainda não foi inicializado
