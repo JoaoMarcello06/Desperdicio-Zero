@@ -60,98 +60,101 @@ let videoStream = null;
 let currentImageBlob = null;
 
 // =============================================================
-// 3. SISTEMA DE AUTENTICAÇÃO (LOGIN E CADASTRO)
+// SISTEMA DE AUTENTICAÇÃO CORRIGIDO (LOGIN E CADASTRO)
 // =============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const authForm = document.getElementById('authForm');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const authTitle = document.getElementById('authTitle');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const toggleAuthMode = document.getElementById('toggleAuthMode');
+    const toggleText = document.getElementById('toggleText');
 
-// Alterna entre Entrar e Cadastrar
-if (toggleAuthMode) {
-    toggleAuthMode.addEventListener('click', (e) => {
-        e.preventDefault();
-        isLoginMode = !isLoginMode;
-        if (isLoginMode) {
-            authTitle.innerText = "Acesse sua Conta";
-            authSubmitBtn.innerText = "Entrar";
-            toggleText.innerText = "Não tem uma conta?";
-            toggleAuthMode.innerText = "Cadastre-se aqui";
-        } else {
-            authTitle.innerText = "Criar Nova Conta";
-            authSubmitBtn.innerText = "Cadastrar";
-            toggleText.innerText = "Já tem uma conta?";
-            toggleAuthMode.innerText = "Entre aqui";
-        }
-    });
-}
+    let isLoginMode = true;
 
-function validarEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+    // Alternar entre Entrar e Cadastrar
+    if (toggleAuthMode) {
+        toggleAuthMode.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
 
-// Envios do Formulário de Auth
-if (authForm) {
-    authForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = authEmail.value.trim();
-        const password = authPassword.value;
+            if (isLoginMode) {
+                authTitle.innerText = "Acesse sua Conta";
+                authSubmitBtn.innerText = "Entrar";
+                toggleText.innerText = "Não tem uma conta?";
+                toggleAuthMode.innerText = "Cadastre-se aqui";
+            } else {
+                authTitle.innerText = "Criar Nova Conta";
+                authSubmitBtn.innerText = "Cadastrar";
+                toggleText.innerText = "Já tem uma conta?";
+                toggleAuthMode.innerText = "Entre aqui";
+            }
+        });
+    }
 
-        if (!validarEmail(email)) {
-            alert("❌ O formato do e-mail é inválido. Verifique se não falta o '@' ou se há espaços.");
-            return;
-        }
+    // Submissão do Formulário
+    if (authForm) {
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = authEmail.value.trim();
+            const password = authPassword.value;
 
-        authSubmitBtn.disabled = true;
-        authSubmitBtn.innerText = "Aguarde...";
+            if (password.length < 6) {
+                alert("❌ A senha deve ter no mínimo 6 caracteres.");
+                return;
+            }
 
-        if (isLoginMode) {
-            // Entrar
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    if (!user.emailVerified) {
-                        alert("⚠️ E-mail não verificado! Acesse sua caixa de entrada e clique no link de confirmação enviado.");
-                        auth.signOut();
-                    }
-                })
-                .catch((error) => {
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                        alert("❌ E-mail não cadastrado ou senha incorreta.");
-                    } else {
-                        alert("❌ Erro ao entrar: " + error.message);
-                    }
-                })
-                .finally(() => {
-                    authSubmitBtn.disabled = false;
-                    authSubmitBtn.innerText = "Entrar";
-                });
-        } else {
-            // Cadastrar
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    return userCredential.user.sendEmailVerification();
-                })
-                .then(() => {
-                    alert("✅ Conta criada! Enviamos um link de verificação para o seu e-mail.");
-                    auth.signOut();
-                    toggleAuthMode.click();
-                })
-                .catch((error) => {
-                    if (error.code === 'auth/email-already-in-use') {
-                        alert("❌ Este e-mail já está sendo utilizado.");
-                    } else {
-                        alert("❌ Erro ao cadastrar: " + error.message);
-                    }
-                })
-                .finally(() => {
-                    authSubmitBtn.disabled = false;
-                    authSubmitBtn.innerText = "Cadastrar";
-                    authForm.reset();
-                });
-        }
-    });
-}
+            authSubmitBtn.disabled = true;
+            authSubmitBtn.innerText = "Aguarde...";
 
-// Monitor da Sessão (Bloqueia/Libera o App)
+            if (isLoginMode) {
+                // MODO LOGIN
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        authForm.reset();
+                    })
+                    .catch((error) => {
+                        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                            alert("❌ E-mail ou senha incorretos.");
+                        } else {
+                            alert("❌ Erro ao entrar: " + error.message);
+                        }
+                    })
+                    .finally(() => {
+                        authSubmitBtn.disabled = false;
+                        authSubmitBtn.innerText = "Entrar";
+                    });
+            } else {
+                // MODO CADASTRO
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        alert("🎉 Conta criada com sucesso!");
+                        // Tenta enviar e-mail de confirmação em segundo plano sem bloquear o acesso
+                        userCredential.user.sendEmailVerification().catch(() => {});
+                        authForm.reset();
+                    })
+                    .catch((error) => {
+                        if (error.code === 'auth/email-already-in-use') {
+                            alert("❌ Este e-mail já está cadastrado.");
+                        } else if (error.code === 'auth/invalid-email') {
+                            alert("❌ Formato de e-mail inválido.");
+                        } else {
+                            alert("❌ Erro ao cadastrar: " + error.message);
+                        }
+                    })
+                    .finally(() => {
+                        authSubmitBtn.disabled = false;
+                        authSubmitBtn.innerText = "Cadastrar";
+                    });
+            }
+        });
+    }
+});
+
+// Monitor de Estado de Login
 auth.onAuthStateChanged((user) => {
-    if (user && user.emailVerified) {
+    if (user) {
         authSection.classList.add('hidden');
         appSection.classList.remove('hidden');
         if (userHeader) userHeader.classList.remove('hidden');
@@ -160,13 +163,9 @@ auth.onAuthStateChanged((user) => {
         authSection.classList.remove('hidden');
         appSection.classList.add('hidden');
         if (userHeader) userHeader.classList.add('hidden');
-        stopCamera();
+        if (typeof stopCamera === 'function') stopCamera();
     }
 });
-
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => auth.signOut());
-}
 
 // =============================================================
 // 4. NAVEGAÇÃO POR ABAS
