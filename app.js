@@ -385,139 +385,126 @@ function deleteProduct(id) {
     }
 }
 
-// -------------------------------------------------------------
-// CONTROLE DAS ABAS (TABS) - DESIGN NOVO
-// -------------------------------------------------------------
+// =============================================================
+// CONTROLE DE ABAS E CÂMERA (DESBLOQUEIO POR CLIQUE)
+// =============================================================
 const tabScanner = document.getElementById('tabScanner');
 const tabInventory = document.getElementById('tabInventory');
 const viewScanner = document.getElementById('viewScanner');
 const viewInventory = document.getElementById('viewInventory');
 
-if (tabScanner && tabInventory) {
-    tabScanner.addEventListener('click', () => {
-        tabScanner.classList.add('active');
-        tabInventory.classList.remove('active');
-        viewScanner.classList.add('active-tab');
-        viewScanner.classList.remove('hidden');
-        viewInventory.classList.remove('active-tab');
-        viewInventory.classList.add('hidden');
-    });
-
-    tabInventory.addEventListener('click', () => {
-        tabInventory.classList.add('active');
-        tabScanner.classList.remove('active');
-        viewInventory.classList.add('active-tab');
-        viewInventory.classList.remove('hidden');
-        viewScanner.classList.remove('active-tab');
-        viewScanner.classList.add('hidden');
-    });
-}
-
-// -------------------------------------------------------------
-// SISTEMA DE CÂMERA EMBUTIDA, IA E UPLOAD
-// -------------------------------------------------------------
+const startCameraBtn = document.getElementById('startCameraBtn');
+const stopCameraBtn = document.getElementById('stopCameraBtn');
+const cameraStartBox = document.getElementById('cameraStartBox');
+const cameraActiveBox = document.getElementById('cameraActiveBox');
 const cameraVideo = document.getElementById('cameraVideo');
 const cameraCanvas = document.getElementById('cameraCanvas');
 const captureBtn = document.getElementById('captureBtn');
-const cameraContainer = document.getElementById('cameraContainer');
+
 const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 const imagePreview = document.getElementById('imagePreview');
 const retakeBtn = document.getElementById('retakeBtn');
+const productForm = document.getElementById('productForm');
+
 let videoStream = null;
-let currentImageBlob = null; // Guardará a foto para enviar ao banco
+let currentImageBlob = null;
 
-// Função para ligar a câmera traseira
-async function startCamera() {
+// --- NAVEGAÇÃO ENTRE ABAS ---
+tabScanner.addEventListener('click', () => {
+    tabScanner.classList.add('active');
+    tabInventory.classList.remove('active');
+    viewScanner.classList.add('active-tab');
+    viewScanner.classList.remove('hidden');
+    viewInventory.classList.remove('active-tab');
+    viewInventory.classList.add('hidden');
+});
+
+tabInventory.addEventListener('click', () => {
+    tabInventory.classList.add('active');
+    tabScanner.classList.remove('active');
+    viewInventory.classList.add('active-tab');
+    viewInventory.classList.remove('hidden');
+    viewScanner.classList.remove('active-tab');
+    viewScanner.classList.add('hidden');
+    
+    // Desliga a câmera se o usuário trocar de aba
+    stopCamera();
+});
+
+// --- LIGAR A CÂMERA SOMENTE NO CLIQUE ---
+startCameraBtn.addEventListener('click', async () => {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment" } // Tenta forçar a câmera traseira
+        videoStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
         });
-        videoStream = stream;
-        cameraVideo.srcObject = stream;
+        cameraVideo.srcObject = videoStream;
+        
+        // Alterna os cards
+        cameraStartBox.classList.add('hidden');
+        cameraActiveBox.classList.remove('hidden');
+        imagePreviewContainer.classList.add('hidden');
+        productForm.classList.add('hidden');
     } catch (err) {
-        console.error("Erro ao acessar a câmera:", err);
-        alert("Ative a permissão de câmera no seu navegador.");
+        console.error("Erro na câmera:", err);
+        alert("Não foi possível acessar a câmera. Verifique se deu permissão no navegador ou se está usando HTTPS.");
     }
-}
+});
 
-// Função para desligar a câmera (economiza bateria)
+// --- DESLIGAR CÂMERA ---
 function stopCamera() {
     if (videoStream) {
         videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
     }
+    cameraActiveBox.classList.add('hidden');
+    cameraStartBox.classList.remove('hidden');
 }
 
-// Ligar câmera sempre que clicar na aba do Scanner
-tabScanner.addEventListener('click', () => {
-    cameraContainer.classList.remove('hidden');
-    imagePreviewContainer.classList.add('hidden');
-    productForm.classList.add('hidden');
-    startCamera();
-});
+stopCameraBtn.addEventListener('click', stopCamera);
 
-// Desligar câmera ao ir para o Estoque
-tabInventory.addEventListener('click', () => {
-    stopCamera();
-});
-
-// Inicia a câmera logo ao carregar, caso já esteja na aba Scanner
-if(viewScanner.classList.contains('active-tab')){ startCamera(); }
-
-// Botão de TIRAR A FOTO (Sem confirmação nativa)
+// --- CAPTURAR FOTO E PROCESSAR IA ---
 captureBtn.addEventListener('click', () => {
     const ctx = cameraCanvas.getContext('2d');
+    cameraCanvas.width = cameraVideo.videoWidth || 640;
+    cameraCanvas.height = cameraVideo.videoHeight || 480;
     
-    // Configura o tamanho do canvas igual ao do vídeo
-    cameraCanvas.width = cameraVideo.videoWidth;
-    cameraCanvas.height = cameraVideo.videoHeight;
-    
-    // TRUQUE PARA A IA: Aumentar contraste e deixar preto/branco
-    ctx.filter = 'grayscale(100%) contrast(150%) brightness(1.2)';
-    
-    // Desenha o frame atual do vídeo no canvas
+    // Filtro para melhorar leitura do Tesseract
+    ctx.filter = 'grayscale(100%) contrast(150%)';
     ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
     
-    // Transforma em imagem para mostrar na tela e mandar para a IA
     const imageDataUrl = cameraCanvas.toDataURL('image/jpeg', 0.8);
     imagePreview.src = imageDataUrl;
     
-    // Guarda o arquivo Blob (foto) para upar no Firebase Storage depois
     cameraCanvas.toBlob((blob) => { currentImageBlob = blob; }, 'image/jpeg', 0.8);
     
-    // Muda a Interface
     stopCamera();
-    cameraContainer.classList.add('hidden');
+    cameraStartBox.classList.add('hidden');
     imagePreviewContainer.classList.remove('hidden');
     document.getElementById('loading').classList.remove('hidden');
-    
-    // -----------------------------------------------------
-    // CHAMA O TESSERACT.JS (IA) NA IMAGEM MELHORADA
-    // -----------------------------------------------------
-    Tesseract.recognize(
-        imageDataUrl,
-        'por', // Português
-        { logger: m => console.log(m) }
-    ).then(({ data: { text } }) => {
-        document.getElementById('loading').classList.add('hidden');
-        productForm.classList.remove('hidden');
-        
-        // Exemplo simples: Tenta achar um padrão de data (XX/XX/XXXX)
-        const dateMatch = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/);
-        if (dateMatch) {
-            alert("✅ Data identificada na imagem: " + dateMatch[0]);
-            // Opcional: Formatar e jogar no input expiryDate
-        } else {
-            alert("⚠️ A IA leu o texto, mas não achou um padrão claro de data. Digite manualmente.");
-        }
-    });
+
+    // Executa IA Tesseract
+    Tesseract.recognize(imageDataUrl, 'por')
+        .then(({ data: { text } }) => {
+            document.getElementById('loading').classList.add('hidden');
+            productForm.classList.remove('hidden');
+            
+            // Busca padrão de data
+            const dateMatch = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/);
+            if (dateMatch) {
+                alert("✅ Data identificada: " + dateMatch[0]);
+            }
+        })
+        .catch(() => {
+            document.getElementById('loading').classList.add('hidden');
+            productForm.classList.remove('hidden');
+        });
 });
 
-// Botão de TIRAR NOVA FOTO
+// --- TIRAR OUTRA FOTO ---
 retakeBtn.addEventListener('click', () => {
     imagePreviewContainer.classList.add('hidden');
     productForm.classList.add('hidden');
-    cameraContainer.classList.remove('hidden');
-    startCamera();
+    startCameraBtn.click(); // Reabre a câmera
 });
 
 // -------------------------------------------------------------
