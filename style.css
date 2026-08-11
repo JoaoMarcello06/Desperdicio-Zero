@@ -152,3 +152,84 @@ input { width: 100%; padding: 12px; border: 1px solid var(--border-color); borde
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; padding: 1rem; z-index: 1000; }
 .modal-content { max-width: 400px; width: 100%; position: relative; }
 .close-btn { position: absolute; right: 20px; top: 15px; font-size: 1.5rem; cursor: pointer; }
+
+/* =========================================
+   DESIGN DA CÂMERA E SCANNER
+   ========================================= */
+.camera-box {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+#cameraVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Retângulo de Foco da Câmera */
+.focus-frame {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 80px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); /* Escurece em volta do foco */
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Linha de Scanner Animada */
+.scan-line {
+    width: 100%;
+    height: 2px;
+    background: #4ade80;
+    box-shadow: 0 0 10px #4ade80;
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: scan 2s infinite linear;
+}
+@keyframes scan {
+    0% { top: 0; }
+    50% { top: 100%; }
+    100% { top: 0; }
+}
+
+.btn-camera {
+    position: absolute;
+    bottom: 20px;
+    width: 80%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    font-size: 1rem;
+    z-index: 10;
+}
+
+#imagePreview {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    margin-bottom: 10px;
+}
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-muted);
+}
