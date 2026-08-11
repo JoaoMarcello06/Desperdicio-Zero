@@ -60,24 +60,35 @@
                 <button id="tabInventory" class="tab-btn">Seu Estoque Atual</button>
             </nav>
 
-            <!-- ABA 1: ESCANEAR E CADASTRAR -->
+           <!-- ABA 1: ESCANEAR E CADASTRAR -->
             <section id="viewScanner" class="card tab-content active-tab">
                 <div class="card-header">
-                    <h2 class="serif-title">Adicionar Produto</h2>
-                    <span class="badge">IA VISÃO</span>
+                    <h2 class="serif-title">Escanear Validade</h2>
+                    <span class="badge">IA CÂMERA INTELIGENTE</span>
                 </div>
-                <p class="subtitle">Aponte a câmera para o rótulo do produto. A IA identifica o item e a validade para evitar o desperdício.</p>
+                <p class="subtitle">Aponte a câmera para a data de validade. A captura é instantânea.</p>
                 
-                <input type="file" id="imageInput" accept="image/*" capture="environment" class="file-input hidden">
+                <!-- CÂMERA AO VIVO -->
+                <div id="cameraContainer" class="camera-box">
+                    <video id="cameraVideo" autoplay playsinline></video>
+                    <!-- Máscara de foco para o usuário centralizar o texto -->
+                    <div class="focus-frame">
+                        <div class="scan-line"></div>
+                    </div>
+                    <button id="captureBtn" class="btn btn-camera">📸 Capturar Imagem</button>
+                </div>
                 
-                <!-- Caixa pontilhada estilo da imagem -->
-                <label for="imageInput" class="upload-box">
-                    <span class="upload-icon">📸</span>
-                    <p>Clique para escanear novo produto</p>
-                </label>
+                <!-- CANVAS OCULTO (Para tratar a imagem para a IA e salvar no banco) -->
+                <canvas id="cameraCanvas" class="hidden"></canvas>
                 
+                <!-- PREVIEW DA FOTO (Aparece após capturar) -->
+                <div id="imagePreviewContainer" class="hidden text-center">
+                    <img id="imagePreview" src="" alt="Produto Capturado">
+                    <button id="retakeBtn" class="btn-sm btn-outline" style="margin-bottom: 15px;">🔄 Tirar Nova Foto</button>
+                </div>
+
                 <div id="loading" class="hidden loading-box">
-                    <p>⏳ Processando a imagem, aguarde...</p>
+                    <p>⏳ IA analisando a imagem. Melhorando contraste...</p>
                 </div>
 
                 <form id="productForm" class="hidden form-spaced">
@@ -90,10 +101,10 @@
                         <input type="text" id="productDescription">
                     </div>
                     <div class="form-group">
-                        <label>Data de Validade:</label>
+                        <label>Data de Validade (Corrija se necessário):</label>
                         <input type="date" id="expiryDate" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Salvar no Estoque</button>
+                    <button type="submit" id="saveProductBtn" class="btn btn-primary">Salvar no Banco de Dados</button>
                 </form>
             </section>
 
