@@ -35,21 +35,26 @@
     </header>
 
     <main>
-        <!-- TELA DE AUTENTICAÇÃO -->
-        <section id="authSection" class="card">
-            <h2 id="authTitle" class="serif-title">Acesse sua Conta</h2>
-            <form id="authForm">
-                <label>E-mail:</label>
-                <input type="email" id="authEmail" placeholder="seu@email.com" required>
-                <label>Senha:</label>
-                <input type="password" id="authPassword" placeholder="******" required minlength="6">
-                <button type="submit" id="authSubmitBtn" class="btn btn-primary">Entrar</button>
-            </form>
-            <p class="auth-toggle">
-                <span id="toggleText">Não tem uma conta?</span> 
-                <a href="#" id="toggleAuthMode">Cadastre-se aqui</a>
-            </p>
-        </section>
+     <!-- TELA DE AUTENTICAÇÃO -->
+<section id="authSection" class="card">
+    <h2 id="authTitle" class="title-modern">Acesse sua Conta</h2>
+    <form id="authForm" style="margin-top: 1rem;">
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>E-mail:</label>
+            <input type="email" id="authEmail" placeholder="seu@email.com" required autocomplete="email">
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label>Senha:</label>
+            <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="current-password">
+        </div>
+        <!-- Inicia desabilitado (cinza) -->
+        <button type="submit" id="authSubmitBtn" class="btn btn-emerald" disabled>Entrar</button>
+    </form>
+    <p class="auth-toggle" style="margin-top: 1rem; text-align: center; font-size: 0.9rem;">
+        <span id="toggleText">Não tem uma conta?</span> 
+        <a href="#" id="toggleAuthMode" style="color: var(--primary-eco); font-weight: 600;">Cadastre-se aqui</a>
+    </p>
+</section>
 
       <!-- APLICATIVO PRINCIPAL (APÓS LOGIN) -->
 <div id="appSection" class="hidden">
