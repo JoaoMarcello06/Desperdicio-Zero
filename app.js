@@ -300,3 +300,153 @@ if (tabScanner && tabInventory) {
         viewScanner.classList.add('hidden');
     });
 }
+
+// -------------------------------------------------------------
+// SISTEMA DE CÂMERA EMBUTIDA, IA E UPLOAD
+// -------------------------------------------------------------
+const cameraVideo = document.getElementById('cameraVideo');
+const cameraCanvas = document.getElementById('cameraCanvas');
+const captureBtn = document.getElementById('captureBtn');
+const cameraContainer = document.getElementById('cameraContainer');
+const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+const imagePreview = document.getElementById('imagePreview');
+const retakeBtn = document.getElementById('retakeBtn');
+let videoStream = null;
+let currentImageBlob = null; // Guardará a foto para enviar ao banco
+
+// Função para ligar a câmera traseira
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" } // Tenta forçar a câmera traseira
+        });
+        videoStream = stream;
+        cameraVideo.srcObject = stream;
+    } catch (err) {
+        console.error("Erro ao acessar a câmera:", err);
+        alert("Ative a permissão de câmera no seu navegador.");
+    }
+}
+
+// Função para desligar a câmera (economiza bateria)
+function stopCamera() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+    }
+}
+
+// Ligar câmera sempre que clicar na aba do Scanner
+tabScanner.addEventListener('click', () => {
+    cameraContainer.classList.remove('hidden');
+    imagePreviewContainer.classList.add('hidden');
+    productForm.classList.add('hidden');
+    startCamera();
+});
+
+// Desligar câmera ao ir para o Estoque
+tabInventory.addEventListener('click', () => {
+    stopCamera();
+});
+
+// Inicia a câmera logo ao carregar, caso já esteja na aba Scanner
+if(viewScanner.classList.contains('active-tab')){ startCamera(); }
+
+// Botão de TIRAR A FOTO (Sem confirmação nativa)
+captureBtn.addEventListener('click', () => {
+    const ctx = cameraCanvas.getContext('2d');
+    
+    // Configura o tamanho do canvas igual ao do vídeo
+    cameraCanvas.width = cameraVideo.videoWidth;
+    cameraCanvas.height = cameraVideo.videoHeight;
+    
+    // TRUQUE PARA A IA: Aumentar contraste e deixar preto/branco
+    ctx.filter = 'grayscale(100%) contrast(150%) brightness(1.2)';
+    
+    // Desenha o frame atual do vídeo no canvas
+    ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+    
+    // Transforma em imagem para mostrar na tela e mandar para a IA
+    const imageDataUrl = cameraCanvas.toDataURL('image/jpeg', 0.8);
+    imagePreview.src = imageDataUrl;
+    
+    // Guarda o arquivo Blob (foto) para upar no Firebase Storage depois
+    cameraCanvas.toBlob((blob) => { currentImageBlob = blob; }, 'image/jpeg', 0.8);
+    
+    // Muda a Interface
+    stopCamera();
+    cameraContainer.classList.add('hidden');
+    imagePreviewContainer.classList.remove('hidden');
+    document.getElementById('loading').classList.remove('hidden');
+    
+    // -----------------------------------------------------
+    // CHAMA O TESSERACT.JS (IA) NA IMAGEM MELHORADA
+    // -----------------------------------------------------
+    Tesseract.recognize(
+        imageDataUrl,
+        'por', // Português
+        { logger: m => console.log(m) }
+    ).then(({ data: { text } }) => {
+        document.getElementById('loading').classList.add('hidden');
+        productForm.classList.remove('hidden');
+        
+        // Exemplo simples: Tenta achar um padrão de data (XX/XX/XXXX)
+        const dateMatch = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/);
+        if (dateMatch) {
+            alert("✅ Data identificada na imagem: " + dateMatch[0]);
+            // Opcional: Formatar e jogar no input expiryDate
+        } else {
+            alert("⚠️ A IA leu o texto, mas não achou um padrão claro de data. Digite manualmente.");
+        }
+    });
+});
+
+// Botão de TIRAR NOVA FOTO
+retakeBtn.addEventListener('click', () => {
+    imagePreviewContainer.classList.add('hidden');
+    productForm.classList.add('hidden');
+    cameraContainer.classList.remove('hidden');
+    startCamera();
+});
+
+// -------------------------------------------------------------
+// SALVAR NO BANCO DE DADOS (FIRESTORE + STORAGE)
+// -------------------------------------------------------------
+productForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const saveBtn = document.getElementById('saveProductBtn');
+    saveBtn.innerText = "⏳ Salvando a imagem...";
+    saveBtn.disabled = true;
+
+    // 1. Enviar foto para o Firebase Storage
+    const imageName = 'produtos/' + Date.now() + '.jpg';
+    const storageRef = storage.ref(imageName);
+    
+    storageRef.put(currentImageBlob).then((snapshot) => {
+        return snapshot.ref.getDownloadURL();
+    }).then((imageUrl) => {
+        // 2. Com o link da foto pronto, salva no Firestore
+        saveBtn.innerText = "⏳ Salvando dados...";
+        return db.collection('produtos').add({
+            nome: document.getElementById('productName').value,
+            descricao: document.getElementById('productDescription').value,
+            validade: document.getElementById('expiryDate').value,
+            fotoUrl: imageUrl, // URL da foto salva!
+            userId: auth.currentUser.uid,
+            dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }).then(() => {
+        alert("🎉 Produto e Foto salvos com sucesso no Banco de Dados!");
+        productForm.reset();
+        saveBtn.innerText = "Salvar no Banco de Dados";
+        saveBtn.disabled = false;
+        
+        // Pula automaticamente para a aba Estoque para ver o produto
+        tabInventory.click(); 
+    }).catch((error) => {
+        console.error("Erro ao salvar: ", error);
+        alert("Erro ao salvar produto. Verifique o console.");
+        saveBtn.innerText = "Salvar no Banco de Dados";
+        saveBtn.disabled = false;
+    });
+});
