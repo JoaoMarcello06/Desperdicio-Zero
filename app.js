@@ -59,32 +59,144 @@ toggleAuthMode.addEventListener('click', (e) => {
     toggleAuthMode.innerText = isSignUp ? "Faça login aqui" : "Cadastre-se aqui";
 });
 // Login ou Registro com alertas detalhados de erro
+// -------------------------------------------------------------
+// SISTEMA DE AUTENTICAÇÃO E VERIFICAÇÃO DE E-MAIL
+// -------------------------------------------------------------
+const authForm = document.getElementById('authForm');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authTitle = document.getElementById('authTitle');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const toggleAuthMode = document.getElementById('toggleAuthMode');
+const toggleText = document.getElementById('toggleText');
+const authSection = document.getElementById('authSection');
+const appSection = document.getElementById('appSection');
+const userHeader = document.getElementById('userHeader');
+
+let isLoginMode = true; // O app começa na tela de "Entrar"
+
+// Alternar entre tela de Login e tela de Cadastro
+toggleAuthMode.addEventListener('click', (e) => {
+    e.preventDefault();
+    isLoginMode = !isLoginMode;
+    if (isLoginMode) {
+        authTitle.innerText = "Acesse sua Conta";
+        authSubmitBtn.innerText = "Entrar";
+        toggleText.innerText = "Não tem uma conta?";
+        toggleAuthMode.innerText = "Cadastre-se aqui";
+    } else {
+        authTitle.innerText = "Criar Nova Conta";
+        authSubmitBtn.innerText = "Cadastrar";
+        toggleText.innerText = "Já tem uma conta?";
+        toggleAuthMode.innerText = "Entre aqui";
+    }
+});
+
+// Função para checar se o formato do e-mail é válido
+function validarEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
 authForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const email = authEmail.value;
+    const email = authEmail.value.trim();
     const password = authPassword.value;
 
-    if (isSignUp) {
-        auth.createUserWithEmailAndPassword(email, password)
+    // 1. BARRAR E-MAILS ESCRITOS ERRADOS (Falta de @, espaços, etc)
+    if (!validarEmail(email)) {
+        alert("❌ O formato do e-mail é inválido. Verifique se não falta o '@' ou se há espaços em branco.");
+        return;
+    }
+
+    authSubmitBtn.disabled = true;
+    authSubmitBtn.innerText = "Aguarde...";
+
+    if (isLoginMode) {
+        // ==================== ROTINA DE LOGIN ====================
+        auth.signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
-                alert("🎉 Conta criada com sucesso!");
+                const user = userCredential.user;
+                
+                // 2. BARRAR E-MAILS QUE NÃO FORAM VERIFICADOS (Garante que o e-mail existe)
+                if (!user.emailVerified) {
+                    alert("⚠️ Seu e-mail existe, mas ainda não foi verificado! Acesse sua caixa de entrada e clique no link que enviamos para liberar seu acesso.");
+                    auth.signOut(); // Expulsa o usuário até ele confirmar o e-mail
+                }
             })
-            .catch(err => {
-                console.error("Erro no cadastro:", err);
-                alert("❌ Erro ao cadastrar:\nCódigo: " + err.code + "\nMensagem: " + err.message);
+            .catch((error) => {
+                // 3. BARRAR E-MAILS QUE NÃO ESTÃO NO BANCO DE DADOS
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                    alert("❌ Este e-mail não está cadastrado em nosso sistema ou a senha está incorreta.");
+                } else if (error.code === 'auth/wrong-password') {
+                    alert("❌ Senha incorreta.");
+                } else {
+                    alert("❌ Erro ao entrar: " + error.message);
+                }
+            })
+            .finally(() => {
+                authSubmitBtn.disabled = false;
+                authSubmitBtn.innerText = "Entrar";
             });
     } else {
-        auth.signInWithEmailAndPassword(email, password)
-            .then(() => {
-                alert("🎉 Login efetuado com sucesso!");
+        // ==================== ROTINA DE CADASTRO ====================
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                
+                // 4. ENVIA O LINK DE VERIFICAÇÃO PARA O E-MAIL
+                return user.sendEmailVerification();
             })
-            .catch(err => {
-                console.error("Erro no login:", err);
-                alert("❌ Erro ao entrar:\nCódigo: " + err.code + "\nMensagem: " + err.message);
+            .then(() => {
+                alert("✅ Conta criada com sucesso! ENVIAMOS UM E-MAIL PARA VOCÊ. Por favor, acesse sua caixa de e-mails e clique no link para provar que este e-mail existe.");
+                auth.signOut(); // Desloga imediatamente para forçar a verificação
+                toggleAuthMode.click(); // Volta para a tela de Login
+            })
+            .catch((error) => {
+                if (error.code === 'auth/email-already-in-use') {
+                    alert("❌ Este e-mail já está sendo usado por outra conta.");
+                } else {
+                    alert("❌ Erro ao cadastrar: " + error.message);
+                }
+            })
+            .finally(() => {
+                authSubmitBtn.disabled = false;
+                authSubmitBtn.innerText = "Cadastrar";
+                authForm.reset();
             });
     }
 });
 
+// -------------------------------------------------------------
+// MONITOR DE ACESSO (SÓ LIBERA O APP SE ESTIVER VERIFICADO)
+// -------------------------------------------------------------
+auth.onAuthStateChanged((user) => {
+    // Só deixa ver o aplicativo se estiver logado E com o e-mail verificado
+    if (user && user.emailVerified) {
+        authSection.classList.add('hidden');
+        appSection.classList.remove('hidden');
+        userHeader.classList.remove('hidden');
+        document.getElementById('userEmail').innerText = user.email;
+        
+        // Inicia a câmera se a aba Scanner estiver ativa
+        if(document.getElementById('viewScanner').classList.contains('active-tab')){ 
+            if(typeof startCamera === 'function') startCamera(); 
+        }
+    } else {
+        // Bloqueia no painel de login
+        authSection.classList.remove('hidden');
+        appSection.classList.add('hidden');
+        userHeader.classList.add('hidden');
+        if(typeof stopCamera === 'function') stopCamera();
+    }
+});
+
+// Botão de Sair
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    auth.signOut().then(() => {
+        alert("Você saiu da conta.");
+    });
+});
 // Logout
 logoutBtn.addEventListener('click', () => auth.signOut());
 
