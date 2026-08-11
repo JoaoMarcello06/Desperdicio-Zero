@@ -5,150 +5,164 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desperdício Zero</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Tesseract.js (OCR) -->
+    <!-- Scripts do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Tesseract IA -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 </head>
 <body>
-    
-    <!-- CABEÇALHO ELEGANTE -->
+
+    <!-- DETALHES DECORATIVOS NOS CANTOS DA TELA -->
+    <div class="corner-leaf top-left">🌿</div>
+    <div class="corner-leaf top-right">🍃</div>
+
+    <!-- CABEÇALHO LIMPO (SEM O TEXTO REMOVIDO) -->
     <header class="main-header">
         <div class="header-content">
-            <div class="title-area">
-                <span class="eyebrow">CONTROLE DOMÉSTICO INTELIGENTE</span>
-                <h1>Desperdício<br>Zero</h1>
+            <div>
+                <span class="eyebrow">PROJETO FETEC</span>
+                <h1>Desperdício Zero</h1>
             </div>
-            <div class="desc-area">
-                <p>Gestão de estoque doméstico e avisos automatizados para reduzir perdas antes que os alimentos vençam.</p>
-                <div id="userHeader" class="hidden">
-                    <span id="userEmail"></span>
-                    <button id="logoutBtn" class="btn-sm">Sair</button>
-                </div>
+            <div id="userHeader" class="user-badge hidden">
+                <span id="userEmail"></span>
+                <button type="button" id="logoutBtn" class="btn-logout">Sair</button>
             </div>
         </div>
     </header>
 
     <main>
-     <!-- TELA DE AUTENTICAÇÃO -->
-<section id="authSection" class="card">
-    <h2 id="authTitle" class="title-modern">Acesse sua Conta</h2>
-    <form id="authForm" style="margin-top: 1rem;">
-        <div class="form-group" style="margin-bottom: 1rem;">
-            <label>E-mail:</label>
-            <input type="email" id="authEmail" placeholder="seu@email.com" required autocomplete="email">
-        </div>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label>Senha:</label>
-            <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="current-password">
-        </div>
-        <!-- Inicia desabilitado (cinza) -->
-        <button type="submit" id="authSubmitBtn" class="btn btn-emerald" disabled>Entrar</button>
-    </form>
-    <p class="auth-toggle" style="margin-top: 1rem; text-align: center; font-size: 0.9rem;">
-        <span id="toggleText">Não tem uma conta?</span> 
-        <a href="#" id="toggleAuthMode" style="color: var(--primary-eco); font-weight: 600;">Cadastre-se aqui</a>
-    </p>
-</section>
+        <!-- TELA 1: LOGIN / CADASTRO -->
+        <section id="authSection" class="card eco-card">
+            <!-- Detalhes nos cantos do Card -->
+            <div class="card-corner-accent top-r"></div>
+            <div class="card-corner-accent bottom-l"></div>
 
-      <!-- APLICATIVO PRINCIPAL (APÓS LOGIN) -->
-<div id="appSection" class="hidden">
-    
-    <!-- MENU DE ABAS MODERNO -->
-    <nav class="tabs-container">
-        <button id="tabScanner" class="tab-pill active">
-            <span>📸</span> Escanear Produto
-        </button>
-        <button id="tabInventory" class="tab-pill">
-            <span>🥗</span> Seu Estoque
-        </button>
-    </nav>
+            <h2 id="authTitle" class="title-modern">Acesse sua Conta</h2>
+            
+            <form id="authForm" style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label>E-mail:</label>
+                    <input type="email" id="authEmail" placeholder="seu@email.com" required autocomplete="email">
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Senha:</label>
+                    <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="current-password">
+                </div>
+                <button type="submit" id="authSubmitBtn" class="btn btn-emerald" style="margin-top: 1.5rem;" disabled>Entrar</button>
+            </form>
 
-    <!-- ABA 1: ESCANEAR -->
-    <section id="viewScanner" class="card tab-content active-tab">
-        <div class="card-header">
-            <div>
-                <span class="badge-eco">🌱 IA Visão</span>
-                <h2 class="title-modern">Escanear Validade</h2>
+            <p class="auth-toggle" style="margin-top: 1rem; text-align: center; font-size: 0.9rem;">
+                <span id="toggleText">Não tem uma conta?</span> 
+                <a href="#" id="toggleAuthMode" style="color: var(--primary-eco); font-weight: 700;">Cadastre-se aqui</a>
+            </p>
+        </section>
+
+        <!-- TELA 2: VERIFICAÇÃO DE CÓDIGO DE 6 DÍGITOS -->
+        <section id="verificationSection" class="card eco-card hidden">
+            <div class="card-corner-accent top-r"></div>
+            <div class="card-header text-center">
+                <span class="badge-eco">🔒 SEGURANÇA</span>
+                <h2 class="title-modern" style="margin-top:10px;">Verificação por Código</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top:5px;">
+                    Digitamos o código de 6 dígitos enviado para confirmar seu e-mail:
+                </p>
             </div>
-        </div>
 
-        <!-- ESTADO 1: BOTAO PARA ATIVAR CÂMERA -->
-        <div id="cameraStartBox" class="start-camera-box">
-            <div class="icon-circle">📷</div>
-            <h3>Pronto para escanear?</h3>
-            <p>Clique no botão abaixo para desbloquear a câmera e ler a validade do alimento.</p>
-            <button id="startCameraBtn" class="btn btn-emerald">
-                🔓 Ativar Câmera
+            <div class="otp-container">
+                <input type="text" maxlength="1" class="otp-input" id="otp1" autofocus>
+                <input type="text" maxlength="1" class="otp-input" id="otp2">
+                <input type="text" maxlength="1" class="otp-input" id="otp3">
+                <input type="text" maxlength="1" class="otp-input" id="otp4">
+                <input type="text" maxlength="1" class="otp-input" id="otp5">
+                <input type="text" maxlength="1" class="otp-input" id="otp6">
+            </div>
+
+            <button type="button" id="verifyCodeBtn" class="btn btn-emerald" style="margin-top: 1.5rem;">
+                Confirmar Código
             </button>
-        </div>
+            <button type="button" id="cancelVerifyBtn" class="btn-link" style="margin-top: 10px;">Voltar ao Login</button>
+        </section>
 
-        <!-- ESTADO 2: CÂMERA ATIVA (Aparece ao clicar no botão) -->
-        <div id="cameraActiveBox" class="camera-container hidden">
-            <video id="cameraVideo" autoplay playsinline></video>
-            <div class="focus-frame">
-                <div class="scan-line"></div>
-            </div>
-            <div class="camera-controls">
-                <button id="captureBtn" class="btn btn-capture">📸 Capturar Agora</button>
-                <button id="stopCameraBtn" class="btn-icon-cancel" title="Cancelar">✕</button>
-            </div>
-        </div>
+        <!-- TELA 3: APLICATIVO PRINCIPAL -->
+        <div id="appSection" class="hidden">
+            
+            <nav class="tabs-container">
+                <button type="button" id="tabScanner" class="tab-pill active">
+                    <span>📸</span> Escanear Alimento
+                </button>
+                <button type="button" id="tabInventory" class="tab-pill">
+                    <span>🥗</span> Seu Estoque
+                </button>
+            </nav>
 
-        <canvas id="cameraCanvas" class="hidden"></canvas>
+            <!-- ABA SCANNER -->
+            <section id="viewScanner" class="card eco-card tab-content active-tab">
+                <div class="card-corner-accent top-r"></div>
 
-        <!-- PREVIEW DA FOTO -->
-        <div id="imagePreviewContainer" class="hidden text-center">
-            <img id="imagePreview" src="" alt="Produto Capturado">
-            <button id="retakeBtn" class="btn-sm btn-outline">🔄 Tirar Outra Foto</button>
-        </div>
+                <div class="card-header">
+                    <span class="badge-eco">🌱 IA Visão Rápida</span>
+                    <h2 class="title-modern">Escanear Validade</h2>
+                </div>
 
-        <div id="loading" class="hidden loading-box">
-            <div class="spinner"></div>
-            <p>IA analisando o rótulo...</p>
-        </div>
+                <div id="cameraStartBox" class="start-camera-box">
+                    <div class="icon-circle">📷</div>
+                    <h3>Escanear com a Câmera</h3>
+                    <p>Clique abaixo para abrir a câmera e ler a data de validade instantaneamente.</p>
+                    <button type="button" id="startCameraBtn" class="btn btn-emerald">
+                        🔓 Ativar Câmera
+                    </button>
+                </div>
 
-        <!-- FORMULÁRIO -->
-        <form id="productForm" class="hidden form-spaced">
-            <div class="form-group">
-                <label>Nome do Alimento:</label>
-                <input type="text" id="productName" placeholder="Ex: Leite Desnatado" required>
-            </div>
-            <div class="form-group">
-                <label>Observação (Opcional):</label>
-                <input type="text" id="productDescription" placeholder="Ex: Geladeira - Porta">
-            </div>
-            <div class="form-group">
-                <label>Data de Validade:</label>
-                <input type="date" id="expiryDate" required>
-            </div>
-            <button type="submit" id="saveProductBtn" class="btn btn-emerald">Salvar no Estoque</button>
-        </form>
-    </section>
+                <div id="cameraActiveBox" class="camera-container hidden">
+                    <video id="cameraVideo" autoplay playsinline></video>
+                    <div class="focus-frame"><div class="scan-line"></div></div>
+                    <div class="camera-controls">
+                        <button type="button" id="captureBtn" class="btn btn-capture">⚡ Capturar Agora</button>
+                        <button type="button" id="stopCameraBtn" class="btn-icon-cancel">✕</button>
+                    </div>
+                </div>
 
-    <!-- ABA 2: ESTOQUE -->
-    <section id="viewInventory" class="card tab-content hidden">
-        <div class="card-header">
-            <h2 class="title-modern">Seu Estoque Atual</h2>
-        </div>
-        <div id="inventoryList" class="inventory-grid">
-            <!-- Produtos aparecem aqui -->
-        </div>
-    </section>
-</div>
+                <canvas id="cameraCanvas" class="hidden"></canvas>
 
-    <!-- MODAL (Mantido igual) -->
-    <div id="detailModal" class="modal hidden">
-        <div class="modal-content card">
-            <span id="closeModal" class="close-btn">&times;</span>
-            <div id="modalBody"></div>
+                <div id="imagePreviewContainer" class="hidden text-center">
+                    <img id="imagePreview" src="" alt="Produto Capturado">
+                    <button type="button" id="retakeBtn" class="btn-sm btn-outline">🔄 Tirar Outra Foto</button>
+                </div>
+
+                <div id="loading" class="hidden loading-box">
+                    <div class="spinner"></div>
+                    <p>⚡ IA analisando validade...</p>
+                </div>
+
+                <form id="productForm" class="hidden form-spaced">
+                    <div class="form-group">
+                        <label>Nome do Alimento:</label>
+                        <input type="text" id="productName" placeholder="Ex: Iogurte Natural" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Observação (Opcional):</label>
+                        <input type="text" id="productDescription" placeholder="Ex: Prateleira 2">
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Validade:</label>
+                        <input type="date" id="expiryDate" required>
+                    </div>
+                    <button type="submit" id="saveProductBtn" class="btn btn-emerald">Salvar no Estoque</button>
+                </form>
+            </section>
+
+            <!-- ABA ESTOQUE -->
+            <section id="viewInventory" class="card eco-card tab-content hidden">
+                <div class="card-corner-accent top-r"></div>
+                <div class="card-header">
+                    <h2 class="title-modern">Seu Estoque Atual</h2>
+                </div>
+                <div id="inventoryList" class="inventory-grid"></div>
+            </section>
         </div>
-    </div>
+    </main>
 
     <script src="app.js"></script>
 </body>
