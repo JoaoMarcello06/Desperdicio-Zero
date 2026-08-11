@@ -51,72 +51,91 @@
             </p>
         </section>
 
-        <!-- APLICATIVO PRINCIPAL (APÓS LOGIN) -->
-        <div id="appSection" class="hidden">
-            
-            <!-- MENU DE ABAS -->
-            <nav class="tabs">
-                <button id="tabScanner" class="tab-btn active">Escanear com Câmera</button>
-                <button id="tabInventory" class="tab-btn">Seu Estoque Atual</button>
-            </nav>
+      <!-- APLICATIVO PRINCIPAL (APÓS LOGIN) -->
+<div id="appSection" class="hidden">
+    
+    <!-- MENU DE ABAS MODERNO -->
+    <nav class="tabs-container">
+        <button id="tabScanner" class="tab-pill active">
+            <span>📸</span> Escanear Produto
+        </button>
+        <button id="tabInventory" class="tab-pill">
+            <span>🥗</span> Seu Estoque
+        </button>
+    </nav>
 
-           <!-- ABA 1: ESCANEAR E CADASTRAR -->
-            <section id="viewScanner" class="card tab-content active-tab">
-                <div class="card-header">
-                    <h2 class="serif-title">Escanear Validade</h2>
-                    <span class="badge">IA CÂMERA INTELIGENTE</span>
-                </div>
-                <p class="subtitle">Aponte a câmera para a data de validade. A captura é instantânea.</p>
-                
-                <!-- CÂMERA AO VIVO -->
-                <div id="cameraContainer" class="camera-box">
-                    <video id="cameraVideo" autoplay playsinline></video>
-                    <!-- Máscara de foco para o usuário centralizar o texto -->
-                    <div class="focus-frame">
-                        <div class="scan-line"></div>
-                    </div>
-                    <button id="captureBtn" class="btn btn-camera">📸 Capturar Imagem</button>
-                </div>
-                
-                <!-- CANVAS OCULTO (Para tratar a imagem para a IA e salvar no banco) -->
-                <canvas id="cameraCanvas" class="hidden"></canvas>
-                
-                <!-- PREVIEW DA FOTO (Aparece após capturar) -->
-                <div id="imagePreviewContainer" class="hidden text-center">
-                    <img id="imagePreview" src="" alt="Produto Capturado">
-                    <button id="retakeBtn" class="btn-sm btn-outline" style="margin-bottom: 15px;">🔄 Tirar Nova Foto</button>
-                </div>
-
-                <div id="loading" class="hidden loading-box">
-                    <p>⏳ IA analisando a imagem. Melhorando contraste...</p>
-                </div>
-
-                <form id="productForm" class="hidden form-spaced">
-                    <div class="form-group">
-                        <label>Alimento Identificado:</label>
-                        <input type="text" id="productName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Observação (Opcional):</label>
-                        <input type="text" id="productDescription">
-                    </div>
-                    <div class="form-group">
-                        <label>Data de Validade (Corrija se necessário):</label>
-                        <input type="date" id="expiryDate" required>
-                    </div>
-                    <button type="submit" id="saveProductBtn" class="btn btn-primary">Salvar no Banco de Dados</button>
-                </form>
-            </section>
-
-            <!-- ABA 2: LISTA DE ESTOQUE -->
-            <section id="viewInventory" class="card tab-content hidden">
-                <h2 class="serif-title">Itens Cadastrados</h2>
-                <div id="inventoryList" class="inventory-grid">
-                    <!-- Produtos aparecem aqui -->
-                </div>
-            </section>
+    <!-- ABA 1: ESCANEAR -->
+    <section id="viewScanner" class="card tab-content active-tab">
+        <div class="card-header">
+            <div>
+                <span class="badge-eco">🌱 IA Visão</span>
+                <h2 class="title-modern">Escanear Validade</h2>
+            </div>
         </div>
-    </main>
+
+        <!-- ESTADO 1: BOTAO PARA ATIVAR CÂMERA -->
+        <div id="cameraStartBox" class="start-camera-box">
+            <div class="icon-circle">📷</div>
+            <h3>Pronto para escanear?</h3>
+            <p>Clique no botão abaixo para desbloquear a câmera e ler a validade do alimento.</p>
+            <button id="startCameraBtn" class="btn btn-emerald">
+                🔓 Ativar Câmera
+            </button>
+        </div>
+
+        <!-- ESTADO 2: CÂMERA ATIVA (Aparece ao clicar no botão) -->
+        <div id="cameraActiveBox" class="camera-container hidden">
+            <video id="cameraVideo" autoplay playsinline></video>
+            <div class="focus-frame">
+                <div class="scan-line"></div>
+            </div>
+            <div class="camera-controls">
+                <button id="captureBtn" class="btn btn-capture">📸 Capturar Agora</button>
+                <button id="stopCameraBtn" class="btn-icon-cancel" title="Cancelar">✕</button>
+            </div>
+        </div>
+
+        <canvas id="cameraCanvas" class="hidden"></canvas>
+
+        <!-- PREVIEW DA FOTO -->
+        <div id="imagePreviewContainer" class="hidden text-center">
+            <img id="imagePreview" src="" alt="Produto Capturado">
+            <button id="retakeBtn" class="btn-sm btn-outline">🔄 Tirar Outra Foto</button>
+        </div>
+
+        <div id="loading" class="hidden loading-box">
+            <div class="spinner"></div>
+            <p>IA analisando o rótulo...</p>
+        </div>
+
+        <!-- FORMULÁRIO -->
+        <form id="productForm" class="hidden form-spaced">
+            <div class="form-group">
+                <label>Nome do Alimento:</label>
+                <input type="text" id="productName" placeholder="Ex: Leite Desnatado" required>
+            </div>
+            <div class="form-group">
+                <label>Observação (Opcional):</label>
+                <input type="text" id="productDescription" placeholder="Ex: Geladeira - Porta">
+            </div>
+            <div class="form-group">
+                <label>Data de Validade:</label>
+                <input type="date" id="expiryDate" required>
+            </div>
+            <button type="submit" id="saveProductBtn" class="btn btn-emerald">Salvar no Estoque</button>
+        </form>
+    </section>
+
+    <!-- ABA 2: ESTOQUE -->
+    <section id="viewInventory" class="card tab-content hidden">
+        <div class="card-header">
+            <h2 class="title-modern">Seu Estoque Atual</h2>
+        </div>
+        <div id="inventoryList" class="inventory-grid">
+            <!-- Produtos aparecem aqui -->
+        </div>
+    </section>
+</div>
 
     <!-- MODAL (Mantido igual) -->
     <div id="detailModal" class="modal hidden">
