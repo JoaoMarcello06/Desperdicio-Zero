@@ -17,7 +17,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // =============================================================
-// INICIALIZAÇÃO DO APLICATIVO
+// INICIALIZAÇÃO
 // =============================================================
 document.addEventListener('DOMContentLoaded', () => {
     const authSection = document.getElementById('authSection');
@@ -63,9 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let pendingUserCredential = null;
     let unsubscribeInventory = null;
 
-    // -------------------------------------------------------------
-    // VALIDAÇÃO DO BOTÃO (VERDE vs CINZA)
-    // -------------------------------------------------------------
+    // Validar botão entrar/cadastrar
     function validarForm() {
         const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail.value.trim());
         const senhaValida = authPassword.value.length >= 6;
@@ -77,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
         authPassword.addEventListener('input', validarForm);
     }
 
-    // Alternar Entrar / Cadastrar
     if (toggleAuthMode) {
         toggleAuthMode.addEventListener('click', (e) => {
             e.preventDefault();
@@ -90,9 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // -------------------------------------------------------------
-    // SISTEMA DE CÓDIGO DE VERIFICAÇÃO DE 6 DÍGITOS
-    // -------------------------------------------------------------
+    // OTP Inputs
     const otpInputs = [
         document.getElementById('otp1'),
         document.getElementById('otp2'),
@@ -102,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('otp6')
     ];
 
-    // Pula para a próxima caixinha ao digitar
     otpInputs.forEach((input, index) => {
         if (!input) return;
         input.addEventListener('input', () => {
@@ -113,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Submeter Formulário de Login / Cadastro
     if (authForm) {
         authForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -129,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         validarForm();
                     });
             } else {
-                // MODO CADASTRO: Gera código de 6 dígitos
                 generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
                 
                 auth.createUserWithEmailAndPassword(email, password)
@@ -138,8 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         authSection.classList.add('hidden');
                         verificationSection.classList.remove('hidden');
                         
-                        // Exibe alerta informando o código gerado para facilitar os testes da feira
-                        alert(`📧 CÓDIGO DE VERIFICAÇÃO ENVIADO PARA ${email}\n\nSeu código de acesso é: ${generatedCode}`);
+                        alert(`📧 CÓDIGO DE VERIFICAÇÃO GERADO PARA: ${email}\n\nSeu código é: ${generatedCode}`);
                         otpInputs[0].focus();
                     })
                     .catch((err) => {
@@ -150,17 +141,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Confirmar Código de 6 Dígitos
     if (verifyCodeBtn) {
         verifyCodeBtn.addEventListener('click', () => {
             const enteredCode = otpInputs.map(i => i.value).join('');
             if (enteredCode === generatedCode) {
                 alert("✅ Código verificado com sucesso!");
+                pendingUserCredential = null;
                 verificationSection.classList.add('hidden');
                 appSection.classList.remove('hidden');
                 if (userHeader) userHeader.classList.remove('hidden');
-                if (userEmail) userEmail.innerText = auth.currentUser.email;
-                carregarEstoque(auth.currentUser.uid);
+                if (userEmail && auth.currentUser) userEmail.innerText = auth.currentUser.email;
+                if (auth.currentUser) carregarEstoque(auth.currentUser.uid);
             } else {
                 alert("❌ Código incorreto. Tente novamente.");
             }
@@ -169,13 +160,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (cancelVerifyBtn) {
         cancelVerifyBtn.addEventListener('click', () => {
+            pendingUserCredential = null;
             auth.signOut();
             verificationSection.classList.add('hidden');
             authSection.classList.remove('hidden');
         });
     }
 
-    // Monitor da Sessão
     auth.onAuthStateChanged((user) => {
         if (user && !pendingUserCredential) {
             authSection.classList.add('hidden');
@@ -198,9 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         auth.signOut();
     });
 
-    // -------------------------------------------------------------
-    // CARREGAR ESTOQUE (BANCO DE DADOS)
-    // -------------------------------------------------------------
     function carregarEstoque(userId) {
         if (!inventoryList) return;
 
@@ -231,6 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                     inventoryList.appendChild(card);
                 });
+            }, (err) => {
+                console.error("Erro no estoque:", err);
             });
     }
 
@@ -240,9 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // -------------------------------------------------------------
-    // CÂMERA E IA ULTRA-RÁPIDA (< 1 SEGUNDO)
-    // -------------------------------------------------------------
     if (startCameraBtn) {
         startCameraBtn.addEventListener('click', async () => {
             try {
@@ -275,14 +262,12 @@ document.addEventListener('DOMContentLoaded', () => {
         captureBtn.addEventListener('click', () => {
             const ctx = cameraCanvas.getContext('2d');
             
-            // OTIMIZAÇÃO DE VELOCIDADE: Reduz resolução do Canvas para 450px para IA ler na hora!
             cameraCanvas.width = 450;
             cameraCanvas.height = 320;
 
             ctx.filter = 'grayscale(100%) contrast(180%)';
             ctx.drawImage(cameraVideo, 0, 0, 450, 320);
 
-            // Salva em Base64 leve (Qualidade 0.5)
             capturedBase64Image = cameraCanvas.toDataURL('image/jpeg', 0.5);
             imagePreview.src = capturedBase64Image;
 
@@ -291,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
             imagePreviewContainer.classList.remove('hidden');
             document.getElementById('loading').classList.remove('hidden');
 
-            // IA OTIMIZADA: Busca apenas dígitos e barras de data
             Tesseract.recognize(capturedBase64Image, 'por', {
                 tessedit_char_whitelist: '0123456789/-.'
             }).then(({ data: { text } }) => {
@@ -300,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const dateMatch = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/);
                 if (dateMatch) {
-                    alert("⚡ Data identificada instantaneamente: " + dateMatch[0]);
+                    alert("⚡ Data identificada: " + dateMatch[0]);
                 }
             }).catch(() => {
                 document.getElementById('loading').classList.add('hidden');
@@ -317,9 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // -------------------------------------------------------------
-    // SALVAR NO BANCO DE DADOS (FIRESTORE INSTANTÂNEO)
-    // -------------------------------------------------------------
+    // SALVAR PRODUTO NO FIRESTORE
     if (productForm) {
         productForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -328,14 +310,14 @@ document.addEventListener('DOMContentLoaded', () => {
             saveBtn.disabled = true;
 
             const user = auth.currentUser;
-            if (!user) return;
+            const currentUserId = user ? user.uid : "anonimo";
 
             db.collection('produtos').add({
                 nome: document.getElementById('productName').value,
                 descricao: document.getElementById('productDescription').value,
                 validade: document.getElementById('expiryDate').value,
-                fotoBase64: capturedBase64Image, // Salva imagem leve direto no documento
-                userId: user.uid,
+                fotoBase64: capturedBase64Image,
+                userId: currentUserId,
                 dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 alert("🎉 Alimento salvo com sucesso no estoque!");
@@ -344,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveBtn.innerText = "Salvar no Estoque";
                 saveBtn.disabled = false;
                 
-                // Abre a aba de estoque automaticamente
                 tabInventory.click();
             }).catch((err) => {
                 alert("❌ Erro ao salvar: " + err.message);
@@ -354,7 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Troca de Abas
     if (tabScanner && tabInventory) {
         tabScanner.addEventListener('click', () => {
             tabScanner.classList.add('active');
