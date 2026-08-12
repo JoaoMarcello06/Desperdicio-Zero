@@ -9,7 +9,6 @@ const firebaseConfig = {
   measurementId: "G-4G5V639EEQ"
 };
 
-// Inicializa o Firebase apenas se ainda não foi inicializado
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -17,11 +16,6 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// =============================================================
-// 2. FUNÇÕES UTILITÁRIAS (DATA, NOTIFICAÇÃO E MAPAS)
-// =============================================================
-
-// Converte data de YYYY-MM-DD para DD/MM/AAAA
 function formatarDataBR(dataString) {
     if (!dataString) return 'Data não informada';
     if (dataString.includes('-')) {
@@ -33,14 +27,12 @@ function formatarDataBR(dataString) {
     return dataString;
 }
 
-// Pede permissão para o navegador enviar notificações
 function solicitarPermissaoNotificacao() {
     if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission();
     }
 }
 
-// Dispara alertas para itens vencendo em 5, 3 ou 1 dia
 function checarVencimentos(produtos) {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
 
@@ -65,8 +57,8 @@ function checarVencimentos(produtos) {
             const diasRestantes = Math.ceil(diferencaTempo / (1000 * 3600 * 24));
 
             if (diasRestantes === 5 || diasRestantes === 3 || diasRestantes === 1) {
-                new Notification("⚠️ Alerta de Vencimento!", {
-                    body: `O alimento "${item.nome}" vence em ${diasRestantes} dia(s) (${formatarDataBR(item.validade)})!`,
+                new Notification("Alerta de Vencimento", {
+                    body: `O alimento "${item.nome}" vence em ${diasRestantes} dia(s) (${formatarDataBR(item.validade)})`,
                     icon: item.fotoBase64 || ""
                 });
             }
@@ -74,22 +66,19 @@ function checarVencimentos(produtos) {
     });
 }
 
-// Abre o Google Maps buscando instituições
 window.buscarDoacaoMapa = function(termo = "banco de alimentos doacao") {
     const query = encodeURIComponent(termo);
     window.open(`https://www.google.com/maps/search/${query}`, '_blank');
 };
 
-// =============================================================
-// 3. INICIALIZAÇÃO DA APLICAÇÃO E EVENTOS
-// =============================================================
 document.addEventListener('DOMContentLoaded', () => {
     solicitarPermissaoNotificacao();
 
-    // Elementos de Autenticação
     const authSection = document.getElementById('authSection');
     const appSection = document.getElementById('appSection');
     const authForm = document.getElementById('authForm');
+    const authName = document.getElementById('authName');
+    const nameFieldGroup = document.getElementById('nameFieldGroup');
     const authEmail = document.getElementById('authEmail');
     const authPassword = document.getElementById('authPassword');
     const authTitle = document.getElementById('authTitle');
@@ -97,10 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleAuthMode = document.getElementById('toggleAuthMode');
     const toggleText = document.getElementById('toggleText');
     const userHeader = document.getElementById('userHeader');
+    const userNameDisplay = document.getElementById('userNameDisplay');
     const userEmail = document.getElementById('userEmail');
+    const userAvatar = document.getElementById('userAvatar');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    // Elementos de Abas
     const tabScanner = document.getElementById('tabScanner');
     const tabInventory = document.getElementById('tabInventory');
     const tabDonation = document.getElementById('tabDonation');
@@ -109,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewDonation = document.getElementById('viewDonation');
     const inventoryList = document.getElementById('inventoryList');
 
-    // Elementos da Câmera
     const startCameraBtn = document.getElementById('startCameraBtn');
     const stopCameraBtn = document.getElementById('stopCameraBtn');
     const cameraStartBox = document.getElementById('cameraStartBox');
@@ -120,8 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
     const imagePreview = document.getElementById('imagePreview');
     const retakeBtn = document.getElementById('retakeBtn');
-    
-    // Formulário do Produto
     const productForm = document.getElementById('productForm');
     const loadingMessage = document.getElementById('loading');
 
@@ -130,16 +117,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let capturedBase64Image = ""; 
     let unsubscribeInventory = null;
 
-    // --- AUTENTICAÇÃO ---
     function validarForm() {
         const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail.value.trim());
         const senhaValida = authPassword.value.length >= 6;
-        authSubmitBtn.disabled = !(emailValido && senhaValida);
+        const nomeValido = isLoginMode || authName.value.trim().length > 0;
+        authSubmitBtn.disabled = !(emailValido && senhaValida && nomeValido);
     }
 
-    if (authEmail && authPassword) {
+    if (authEmail && authPassword && authName) {
         authEmail.addEventListener('input', validarForm);
         authPassword.addEventListener('input', validarForm);
+        authName.addEventListener('input', validarForm);
     }
 
     if (toggleAuthMode) {
@@ -150,6 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
             authSubmitBtn.innerText = isLoginMode ? "Entrar" : "Cadastrar";
             toggleText.innerText = isLoginMode ? "Não tem uma conta?" : "Já tem uma conta?";
             toggleAuthMode.innerText = isLoginMode ? "Cadastre-se aqui" : "Entre aqui";
+            
+            if (isLoginMode) {
+                nameFieldGroup.classList.add('hidden');
+            } else {
+                nameFieldGroup.classList.remove('hidden');
+            }
             validarForm();
         });
     }
@@ -165,19 +159,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isLoginMode) {
                 auth.signInWithEmailAndPassword(email, password)
-                    .catch(() => {
-                        alert("❌ E-mail ou senha incorretos.");
+                    .catch((err) => {
+                        alert("Erro de autenticação: " + err.message);
                         authSubmitBtn.innerText = "Entrar";
                         validarForm();
                     });
             } else {
+                const nomeDigitado = authName.value.trim();
                 auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        return userCredential.user.updateProfile({
+                            displayName: nomeDigitado
+                        });
+                    })
                     .then(() => {
-                        alert("🎉 Conta criada com sucesso!");
                         authSubmitBtn.innerText = "Cadastrar";
                     })
                     .catch((err) => {
-                        alert("❌ Erro ao cadastrar: " + err.message);
+                        alert("Erro ao cadastrar: " + err.message);
                         authSubmitBtn.innerText = "Cadastrar";
                         validarForm();
                     });
@@ -185,17 +184,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Monitora o estado de login
     auth.onAuthStateChanged((user) => {
         if (user) {
             authSection.classList.add('hidden');
             appSection.classList.remove('hidden');
             if (userHeader) userHeader.classList.remove('hidden');
+            
+            const nomeExibicao = user.displayName || user.email.split('@')[0];
+            const inicial = nomeExibicao.charAt(0).toUpperCase();
+
+            if (userNameDisplay) userNameDisplay.innerText = nomeExibicao;
             if (userEmail) userEmail.innerText = user.email;
-            
-            // Força a exibição do formulário para permitir entrada manual imediata
+            if (userAvatar) userAvatar.innerText = inicial;
+
             if (productForm) productForm.classList.remove('hidden'); 
-            
             carregarEstoque(user.uid);
         } else {
             authSection.classList.remove('hidden');
@@ -210,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         auth.signOut();
     });
 
-    // --- CONTROLE DE ABAS ---
     function esconderTodasAbas() {
         if (viewScanner) viewScanner.classList.add('hidden');
         if (viewInventory) viewInventory.classList.add('hidden');
@@ -247,11 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- CARREGAR ESTOQUE E RECEITAS ---
     window.buscarReceitaCombinada = function() {
         const selecionados = document.querySelectorAll('.item-checkbox:checked');
         if (selecionados.length === 0) {
-            alert("⚠️ Selecione pelo menos um alimento marcando a caixinha do lado esquerdo!");
+            alert("Selecione pelo menos um alimento da lista para buscar receitas.");
             return;
         }
 
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.deletarItem = function(id) {
-        if (confirm("Deseja realmente excluir este item do estoque?")) {
+        if (confirm("Deseja realmente remover este item do seu estoque?")) {
             db.collection('produtos').doc(id).delete();
         }
     };
@@ -277,15 +277,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const listaProdutos = [];
 
                 if (snapshot.empty) {
-                    inventoryList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #64748b;">Nenhum alimento no estoque.</p>';
+                    inventoryList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">Nenhum alimento cadastrado no momento.</p>';
                     return;
                 }
 
-                // Adiciona a barra de receitas no topo do grid
                 const barHTML = `
                     <div class="multi-select-bar">
-                        <span>💡 Marque alimentos abaixo para buscar receitas:</span>
-                        <button class="btn-recipe" onclick="buscarReceitaCombinada()">🔍 Buscar Receitas</button>
+                        <span style="font-size: 0.875rem; color: #374151;">Selecione os alimentos para buscar combinações:</span>
+                        <button class="btn-recipe" onclick="buscarReceitaCombinada()">Buscar Receitas</button>
                     </div>
                 `;
                 inventoryList.insertAdjacentHTML('beforeend', barHTML);
@@ -300,30 +299,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const imgHTML = item.fotoBase64 
                         ? `<img src="${item.fotoBase64}" alt="${item.nome}">`
-                        : `<div style="height:140px; background:#f1f5f9; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">📦 Sem Foto</div>`;
+                        : `<div style="height:140px; background:#f3f4f6; border-radius:6px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; color:#9ca3af; font-size:0.875rem;">Sem Imagem</div>`;
 
                     card.innerHTML = `
                         <div class="inventory-card-header">
-                            <input type="checkbox" class="item-checkbox" data-nome="${item.nome}" title="Selecionar para receita">
+                            <input type="checkbox" class="item-checkbox" data-nome="${item.nome}" title="Selecionar item">
                             <button type="button" class="btn-delete" onclick="deletarItem('${doc.id}')">Excluir</button>
                         </div>
                         ${imgHTML}
-                        <h4 style="margin: 8px 0 4px 0; color: #0f172a;">${item.nome}</h4>
-                        <p style="font-size:0.85rem; color:#64748b; margin-bottom:12px; flex-grow: 1;">${item.descricao || 'Sem observações'}</p>
-                        <span class="badge-date" style="font-weight:600;">📅 Validade: ${dataFormatada}</span>
+                        <h4 style="margin: 4px 0; color: #111827; font-size:1rem;">${item.nome}</h4>
+                        <p style="font-size:0.85rem; color:#6b7280; margin-bottom:12px; flex-grow: 1;">${item.descricao || 'Sem observações'}</p>
+                        <span class="badge-date">Validade: ${dataFormatada}</span>
                     `;
                     inventoryList.appendChild(card);
                 });
 
-                // Verifica alertas após renderizar os produtos
                 checarVencimentos(listaProdutos);
 
             }, (err) => {
-                console.error("Erro no estoque:", err);
+                console.error("Erro ao carregar estoque:", err);
             });
     }
 
-    // --- CÂMERA E OCR (COM CORES) ---
     if (startCameraBtn) {
         startCameraBtn.addEventListener('click', async () => {
             try {
@@ -336,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 imagePreviewContainer.classList.add('hidden');
                 if (productForm) productForm.classList.add('hidden');
             } catch (err) {
-                alert("Não foi possível acessar a câmera do dispositivo.");
+                alert("Acesso à câmera não permitido ou indisponível.");
             }
         });
     }
@@ -359,7 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cameraCanvas.width = 450;
             cameraCanvas.height = 320;
 
-            // Foto mantida totalmente colorida (sem filtro de grayscale)
             ctx.filter = 'none';
             ctx.drawImage(cameraVideo, 0, 0, 450, 320);
 
@@ -371,7 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
             imagePreviewContainer.classList.remove('hidden');
             if (loadingMessage) loadingMessage.classList.remove('hidden');
 
-            // OCR da imagem
             Tesseract.recognize(capturedBase64Image, 'por', {
                 tessedit_char_whitelist: '0123456789/-.'
             }).then(({ data: { text } }) => {
@@ -387,7 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         let ano = partes[2];
                         if (ano.length === 2) ano = "20" + ano;
                         expiryInput.value = `${ano}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                        alert(`⚡ Data inteligente identificada: ${partes[0]}/${partes[1]}/${ano}`);
                     }
                 }
             }).catch(() => {
@@ -406,12 +400,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- SALVAR PRODUTO NO FIRESTORE ---
     if (productForm) {
         productForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const saveBtn = document.getElementById('saveProductBtn');
-            saveBtn.innerText = "⏳ Salvando...";
+            saveBtn.innerText = "Salvando...";
             saveBtn.disabled = true;
 
             const user = auth.currentUser;
@@ -421,26 +414,23 @@ document.addEventListener('DOMContentLoaded', () => {
             db.collection('produtos').add({
                 nome: document.getElementById('productName').value,
                 descricao: document.getElementById('productDescription').value,
-                validade: formatarDataBR(rawValidade), // Salva em DD/MM/AAAA
+                validade: formatarDataBR(rawValidade),
                 fotoBase64: capturedBase64Image,
                 userId: currentUserId,
                 dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
-                alert("🎉 Alimento salvo com sucesso no estoque!");
                 productForm.reset();
                 capturedBase64Image = "";
                 
-                // Reinicia layout para estado inicial
                 if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
                 if (cameraStartBox) cameraStartBox.classList.remove('hidden');
                 
                 saveBtn.innerText = "Salvar no Estoque";
                 saveBtn.disabled = false;
                 
-                // Vai direto para a aba de estoque após salvar
                 if (tabInventory) tabInventory.click();
             }).catch((err) => {
-                alert("❌ Erro ao salvar: " + err.message);
+                alert("Erro ao salvar alimento: " + err.message);
                 saveBtn.innerText = "Salvar no Estoque";
                 saveBtn.disabled = false;
             });
