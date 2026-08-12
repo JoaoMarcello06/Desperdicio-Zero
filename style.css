@@ -5,7 +5,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
@@ -19,30 +19,32 @@ body {
    ============================================================= */
 .app-header {
     background-color: #ffffff;
-    padding: 16px 24px;
+    padding: 16px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border-bottom: 1px solid #e2e8f0;
     margin-bottom: 24px;
 }
 
 .app-header h1 {
-    font-size: 1.5rem;
-    color: #2563eb;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.025em;
 }
 
 .user-info {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: #64748b;
 }
 
 .container {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     padding: 0 16px 40px 16px;
 }
@@ -52,42 +54,43 @@ body {
    ============================================================= */
 .card {
     background: #ffffff;
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 24px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid #e2e8f0;
     margin-bottom: 24px;
 }
 
 .card h2 {
-    margin-bottom: 20px;
-    font-size: 1.4rem;
+    margin-bottom: 16px;
+    font-size: 1.25rem;
+    font-weight: 600;
     color: #0f172a;
 }
 
 form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 label {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    color: #475569;
-    margin-bottom: -4px;
+    color: #334155;
+    margin-bottom: -8px;
 }
 
 input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"] {
-    padding: 12px 16px;
-    border-radius: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
     border: 1px solid #cbd5e1;
-    font-size: 1rem;
-    background-color: #f8fafc;
-    transition: all 0.2s;
+    font-size: 0.95rem;
+    background-color: #ffffff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 input[type="text"]:focus,
@@ -96,81 +99,70 @@ input[type="password"]:focus,
 input[type="date"]:focus {
     outline: none;
     border-color: #2563eb;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 /* =============================================================
-   4. ESTILO DOS BOTÕES (INSPIRADO EM MERCADO LIVRE / SAMSUNG)
+   4. SISTEMA DE BOTÕES DESIGN SYSTEM
    ============================================================= */
 .btn-primary, .btn-secondary, .btn-recipe, .btn-delete {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border-radius: 50px; /* Estilo 'Pill' moderno */
-    font-size: 0.95rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.875rem;
     font-weight: 600;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn-primary {
-    background-color: #2563eb; /* Azul moderno Samsung */
+    background-color: #0066cc;
     color: #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background-color: #1d4ed8;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    background-color: #0052a3;
 }
 
 .btn-primary:disabled {
     background-color: #94a3b8;
     cursor: not-allowed;
-    box-shadow: none;
 }
 
 .btn-secondary {
-    background-color: #e2e8f0;
+    background-color: #f1f5f9;
     color: #334155;
+    border-color: #cbd5e1;
 }
 
 .btn-secondary:hover {
-    background-color: #cbd5e1;
+    background-color: #e2e8f0;
 }
 
 .btn-recipe {
-    background-color: #ffe600; /* Amarelo Mercado Livre */
-    color: #2d3277;
-    font-weight: 700;
+    background-color: #ffe600;
+    color: #0f172a;
+    font-weight: 600;
 }
 
 .btn-recipe:hover {
-    background-color: #f5dc00;
-    box-shadow: 0 4px 12px rgba(255, 230, 0, 0.3);
+    background-color: #f0d800;
 }
 
 .btn-delete {
-    background-color: #fee2e2;
+    background-color: #ffffff;
     color: #dc2626;
-    border-radius: 12px;
-    box-shadow: none;
-    padding: 8px 14px;
-    font-size: 0.85rem;
+    border-color: #fca5a5;
+    padding: 6px 12px;
+    font-size: 0.8125rem;
 }
 
 .btn-delete:hover {
-    background-color: #fca5a5;
-    color: #991b1b;
-}
-
-.btn-primary:active, .btn-recipe:active, .btn-delete:active {
-    transform: scale(0.97);
+    background-color: #fef2f2;
+    border-color: #dc2626;
 }
 
 /* =============================================================
@@ -178,47 +170,37 @@ input[type="date"]:focus {
    ============================================================= */
 .tabs-navigation {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 24px;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
     padding-bottom: 12px;
-    overflow-x: auto; /* Permite scroll no celular se faltar espaço */
 }
 
 .tabs-navigation button {
     background: transparent;
     border: none;
-    padding: 10px 18px;
-    font-size: 0.95rem;
-    font-weight: 600;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
     color: #64748b;
     cursor: pointer;
-    border-radius: 12px;
-    transition: all 0.2s ease;
-    white-space: nowrap;
+    border-radius: 6px;
+    transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .tabs-navigation button:hover {
-    background-color: #f1f5f9;
     color: #0f172a;
+    background-color: #f1f5f9;
 }
 
 .tabs-navigation button.active {
-    background-color: #2563eb;
+    background-color: #0066cc;
     color: #ffffff;
-}
-
-.tab-content {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+    font-weight: 600;
 }
 
 /* =============================================================
-   6. CÂMERA E PREVIEW DE IMAGEM
+   6. CÂMERA E Mídia
    ============================================================= */
 #cameraActiveBox, #imagePreviewContainer {
     display: flex;
@@ -230,10 +212,9 @@ input[type="date"]:focus {
 
 video, #imagePreview {
     width: 100%;
-    max-width: 450px;
-    border-radius: 16px;
-    border: 2px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    max-width: 440px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
 }
 
 .camera-actions {
@@ -243,49 +224,45 @@ video, #imagePreview {
 
 #loading {
     text-align: center;
-    padding: 16px;
-    color: #2563eb;
-    font-weight: 600;
+    padding: 12px;
+    color: #0066cc;
+    font-weight: 500;
     background: #eff6ff;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.875rem;
 }
 
 /* =============================================================
-   7. ESTOQUE E BARRA DE SELEÇÃO
+   7. GRID DO ESTOQUE E BARRA DE AÇÃO
    ============================================================= */
 .multi-select-bar {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    padding: 12px 18px;
-    border-radius: 16px;
-    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     grid-column: 1/-1;
 }
 
 .multi-select-bar span {
-    font-weight: 500;
+    font-size: 0.875rem;
     color: #334155;
-    font-size: 0.95rem;
 }
 
 .inventory-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
 }
 
 .inventory-card {
     background: #ffffff;
-    border-radius: 16px;
+    border-radius: 8px;
     padding: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     border: 1px solid #e2e8f0;
     display: flex;
     flex-direction: column;
@@ -299,9 +276,9 @@ video, #imagePreview {
 }
 
 .item-checkbox {
-    width: 20px;
-    height: 20px;
-    accent-color: #2563eb;
+    width: 18px;
+    height: 18px;
+    accent-color: #0066cc;
     cursor: pointer;
 }
 
@@ -309,17 +286,18 @@ video, #imagePreview {
     width: 100%;
     height: 140px;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 6px;
     margin-bottom: 12px;
 }
 
 .badge-date {
     display: inline-block;
-    background-color: #f1f5f9;
-    color: #0f172a;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8125rem;
     margin-top: auto;
 }
 
@@ -328,37 +306,35 @@ video, #imagePreview {
    ============================================================= */
 .donation-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 16px;
-    margin-top: 24px;
+    margin-top: 20px;
 }
 
 .donation-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border-radius: 8px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
 }
 
 .donation-card h3 {
-    margin-top: 0;
-    margin-bottom: 12px;
-    color: #1e293b;
-    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: #0f172a;
+    font-size: 1.1rem;
 }
 
 .donation-card p {
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     color: #475569;
     margin-bottom: 16px;
     flex-grow: 1;
 }
 
 /* =============================================================
-   9. CLASSES UTILITÁRIAS
+   9. UTILITÁRIOS E EXIBIÇÃO
    ============================================================= */
 .hidden {
     display: none !important;
