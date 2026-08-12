@@ -9,18 +9,6 @@ const firebaseConfig = {
   measurementId: "G-4G5V639EEQ"
 };
 
-// =============================================================
-// CONFIGURAÇÃO DO FIREBASE (SUBSTITUA PELAS SUAS CHAVES)
-// =============================================================
-const firebaseConfig = {
-    apiKey: "SUA_API_KEY_AQUI",
-    authDomain: "SEU_PROJECT_ID.firebaseapp.com",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_PROJECT_ID.appspot.com",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SEU_APP_ID"
-};
-
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
