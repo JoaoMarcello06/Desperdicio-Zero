@@ -168,3 +168,107 @@ input:focus { border-color: var(--primary-eco); }
 .spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-eco); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 10px auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .loading-box { text-align: center; padding: 10px; font-size: 0.9rem; color: var(--primary-eco); font-weight: 600; }
+
+/* =============================================================
+   ESTILO DOS BOTÕES (INSPIRADO EM MERCADO LIVRE / SAMSUNG)
+   ============================================================= */
+.btn-primary, .btn-secondary, .btn-recipe, .btn-delete, .btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 50px; /* Estilo 'Pill' moderno estilo Samsung */
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary {
+    background-color: #2563eb; /* Azul moderno */
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.btn-primary:active, .btn-recipe:active, .btn-delete:active {
+    transform: scale(0.97);
+}
+
+.btn-recipe {
+    background-color: #ffe600; /* Amarelo estilo Mercado Livre */
+    color: #2d3277;
+    font-weight: 700;
+}
+
+.btn-recipe:hover {
+    background-color: #f5dc00;
+    box-shadow: 0 4px 12px rgba(255, 230, 0, 0.3);
+}
+
+.btn-delete {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-radius: 12px;
+}
+
+.btn-delete:hover {
+    background-color: #fca5a5;
+    color: #991b1b;
+}
+
+/* Checkbox personalizado para seleção de alimentos */
+.item-checkbox {
+    width: 20px;
+    height: 20px;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.inventory-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+/* Barra Flutuante de Seleção Múltipla */
+.multi-select-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 12px 18px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Aba de Doações */
+.donation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.donation-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.donation-card h3 {
+    margin-top: 0;
+    color: #1e293b;
+}
