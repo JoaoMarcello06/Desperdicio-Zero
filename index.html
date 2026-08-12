@@ -154,6 +154,42 @@
 
             <!-- ABA ESTOQUE -->
             <section id="viewInventory" class="card eco-card tab-content hidden">
+                <!-- NAVEGAÇÃO DE ABAS -->
+<div class="tabs-navigation">
+    <button id="tabScanner" class="active">📷 Escanear Alimento</button>
+    <button id="tabInventory">📦 Seu Estoque</button>
+    <button id="tabDonation">🤝 Doar Alimentos</button>
+</div>
+
+<!-- VISTA DE DOAÇÕES (NOVA ABA) -->
+<div id="viewDonation" class="tab-content hidden">
+    <h2> Instituições e Locais para Doação</h2>
+    <p>Evite o desperdício destinando alimentos em bom estado para quem mais precisa.</p>
+    
+    <button class="btn-primary" onclick="buscarDoacaoMapa()" style="margin-top: 10px;">
+        📍 Encontrar Bancos de Alimentos no Google Maps
+    </button>
+
+    <div class="donation-grid">
+        <div class="donation-card">
+            <h3>🏛️ Mesa Brasil SESC</h3>
+            <p>A maior rede de bancos de alimentos da América Latina. Recebe sobra de alimentos próprios para consumo e redistribui para instituições sociais.</p>
+            <a href="https://www.sesc.com.br/atuacoes/assistencia/mesa-brasil/" target="_blank" class="btn-recipe" style="text-decoration:none; display:inline-block; margin-top:10px;">Saber Mais</a>
+        </div>
+
+        <div class="donation-card">
+            <h3>📦 Bancos de Alimentos Municipais</h3>
+            <p>Locais gerenciados pelas prefeituras para arrecadação de hortifrúti, grãos e mantimentos não perecíveis.</p>
+            <button class="btn-primary" onclick="buscarDoacaoMapa('banco de alimentos')" style="margin-top:10px;">Localizar Próximo</button>
+        </div>
+
+        <div class="donation-card">
+            <h3>⛪ Igrejas e ONGs Locais</h3>
+            <p>Paróquias, centros comunitários e ONGs de bairro costumam aceitar cestas básicas e alimentos secos dentro da validade.</p>
+            <button class="btn-primary" onclick="buscarDoacaoMapa('ong doacao de alimentos')" style="margin-top:10px;">Buscar ONGs</button>
+        </div>
+    </div>
+</div>
                 <div class="card-corner-accent top-r"></div>
                 <div class="card-header">
                     <h2 class="title-modern">Seu Estoque Atual</h2>
