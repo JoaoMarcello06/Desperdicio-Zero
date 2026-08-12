@@ -4,201 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desperdício Zero</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Scripts do Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <!-- Tesseract IA -->
+    
+    <!-- Link para o arquivo CSS de estilos -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Biblioteca OCR Tesseract para leitura da validade -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 </head>
 <body>
 
-    <!-- DETALHES DECORATIVOS NOS CANTOS DA TELA -->
-    <div class="corner-leaf top-left">🌿</div>
-    <div class="corner-leaf top-right">🍃</div>
-
-    <!-- CABEÇALHO LIMPO (SEM O TEXTO REMOVIDO) -->
-    <header class="main-header">
-        <div class="header-content">
-            <div>
-                <h1>Desperdício Zero</h1>
-            </div>
-            <div id="userHeader" class="user-badge hidden">
-                <span id="userEmail"></span>
-                <button type="button" id="logoutBtn" class="btn-logout">Sair</button>
-            </div>
+    <!-- CABEÇALHO DA APLICAÇÃO -->
+    <header class="app-header">
+        <h1>🌱 Desperdício Zero</h1>
+        <div id="userHeader" class="user-info hidden">
+            <span id="userEmail"></span>
+            <button id="logoutBtn" class="btn-delete">Sair</button>
         </div>
     </header>
 
-    <main>
-        <!-- TELA 1: LOGIN / CADASTRO -->
-        <section id="authSection" class="card eco-card">
-            <!-- Detalhes nos cantos do Card -->
-            <div class="card-corner-accent top-r"></div>
-            <div class="card-corner-accent bottom-l"></div>
+    <main class="container">
 
-            <h2 id="authTitle" class="title-modern">Acesse sua Conta</h2>
-            
-            <form id="authForm" style="margin-top: 1rem;">
-                <div class="form-group">
-                    <label>E-mail:</label>
-                    <input type="email" id="authEmail" placeholder="seu@email.com" required autocomplete="email">
-                </div>
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label>Senha:</label>
-                    <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="current-password">
-                </div>
-                <button type="submit" id="authSubmitBtn" class="btn btn-emerald" style="margin-top: 1.5rem;" disabled>Entrar</button>
+        <!-- 1. TELA DE AUTENTICAÇÃO (LOGIN / CADASTRO) -->
+        <section id="authSection" class="card">
+            <h2 id="authTitle">Acesse sua Conta</h2>
+            <form id="authForm">
+                <label for="authEmail">E-mail:</label>
+                <input type="email" id="authEmail" placeholder="Seu e-mail" required>
+                
+                <label for="authPassword">Senha:</label>
+                <input type="password" id="authPassword" placeholder="Sua senha (mínimo 6 caracteres)" required>
+                
+                <button type="submit" id="authSubmitBtn" class="btn-primary" disabled>Entrar</button>
             </form>
-
-            <p class="auth-toggle" style="margin-top: 1rem; text-align: center; font-size: 0.9rem;">
+            <p style="margin-top: 16px; text-align: center;">
                 <span id="toggleText">Não tem uma conta?</span> 
-                <a href="#" id="toggleAuthMode" style="color: var(--primary-eco); font-weight: 700;">Cadastre-se aqui</a>
+                <a href="#" id="toggleAuthMode" style="color: #2563eb; font-weight: 600; text-decoration: none;">Cadastre-se aqui</a>
             </p>
         </section>
 
-        <!-- TELA 2: VERIFICAÇÃO DE CÓDIGO DE 6 DÍGITOS -->
-        <section id="verificationSection" class="card eco-card hidden">
-            <div class="card-corner-accent top-r"></div>
-            <div class="card-header text-center">
-                <span class="badge-eco">🔒 SEGURANÇA</span>
-                <h2 class="title-modern" style="margin-top:10px;">Verificação por Código</h2>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top:5px;">
-                    Digitamos o código de 6 dígitos enviado para confirmar seu e-mail:
-                </p>
-            </div>
-
-            <div class="otp-container">
-                <input type="text" maxlength="1" class="otp-input" id="otp1" autofocus>
-                <input type="text" maxlength="1" class="otp-input" id="otp2">
-                <input type="text" maxlength="1" class="otp-input" id="otp3">
-                <input type="text" maxlength="1" class="otp-input" id="otp4">
-                <input type="text" maxlength="1" class="otp-input" id="otp5">
-                <input type="text" maxlength="1" class="otp-input" id="otp6">
-            </div>
-
-            <button type="button" id="verifyCodeBtn" class="btn btn-emerald" style="margin-top: 1.5rem;">
-                Confirmar Código
-            </button>
-            <button type="button" id="cancelVerifyBtn" class="btn-link" style="margin-top: 10px;">Voltar ao Login</button>
-        </section>
-
-        <!-- TELA 3: APLICATIVO PRINCIPAL -->
-        <div id="appSection" class="hidden">
+        <!-- 2. ÁREA PRINCIPAL DA APLICAÇÃO -->
+        <section id="appSection" class="hidden">
             
-            <nav class="tabs-container">
-                <button type="button" id="tabScanner" class="tab-pill active">
-                    <span></span> Escanear Alimento
-                </button>
-                <button type="button" id="tabInventory" class="tab-pill">
-                    <span></span> Seu Estoque
-                </button>
+            <!-- NAVEGAÇÃO DE ABAS -->
+            <nav class="tabs-navigation">
+                <button id="tabScanner" class="active">📷 Escanear Alimento</button>
+                <button id="tabInventory">📦 Seu Estoque</button>
+                <button id="tabDonation">🤝 Doar Alimentos</button>
             </nav>
 
-            <!-- ABA SCANNER -->
-            <section id="viewScanner" class="card eco-card tab-content active-tab">
-                <div class="card-corner-accent top-r"></div>
-
-                <div class="card-header">
-                    <span class="badge-eco"> IA Visão Rápida</span>
-                    <h2 class="title-modern">Escanear Validade</h2>
-                </div>
-
-                <div id="cameraStartBox" class="start-camera-box">
-                    <div class="icon-circle">📷</div>
-                    <h3>Escanear com a Câmera</h3>
-                    <p>Clique abaixo para abrir a câmera e ler a data de validade instantaneamente.</p>
-                    <button type="button" id="startCameraBtn" class="btn btn-emerald">
-                        🔓 Ativar Câmera
-                    </button>
-                </div>
-
-                <div id="cameraActiveBox" class="camera-container hidden">
-                    <video id="cameraVideo" autoplay playsinline></video>
-                    <div class="focus-frame"><div class="scan-line"></div></div>
-                    <div class="camera-controls">
-                        <button type="button" id="captureBtn" class="btn btn-capture">⚡ Capturar Agora</button>
-                        <button type="button" id="stopCameraBtn" class="btn-icon-cancel">✕</button>
+            <!-- ABA 1: ESCANEAR ALIMENTO -->
+            <div id="viewScanner" class="tab-content active-tab">
+                <div class="card">
+                    <h2>Escanear Validade</h2>
+                    <p style="margin-bottom: 16px; color: #475569;">Tire uma foto da data de validade para preencher automaticamente, ou digite manualmente abaixo.</p>
+                    
+                    <div id="cameraStartBox">
+                        <button id="startCameraBtn" class="btn-primary">📷 Abrir Câmera</button>
                     </div>
-                </div>
 
-                <canvas id="cameraCanvas" class="hidden"></canvas>
-
-                <div id="imagePreviewContainer" class="hidden text-center">
-                    <img id="imagePreview" src="" alt="Produto Capturado">
-                    <button type="button" id="retakeBtn" class="btn-sm btn-outline">🔄 Tirar Outra Foto</button>
-                </div>
-
-                <div id="loading" class="hidden loading-box">
-                    <div class="spinner"></div>
-                    <p>⚡ IA analisando validade...</p>
-                </div>
-
-                <form id="productForm" class="hidden form-spaced">
-                    <div class="form-group">
-                        <label>Nome do Alimento:</label>
-                        <input type="text" id="productName" placeholder="Ex: Iogurte Natural" required>
+                    <div id="cameraActiveBox" class="hidden">
+                        <video id="cameraVideo" autoplay playsinline></video>
+                        <canvas id="cameraCanvas" class="hidden"></canvas>
+                        <div class="camera-actions">
+                            <button id="captureBtn" class="btn-primary">📸 Capturar Foto</button>
+                            <button id="stopCameraBtn" class="btn-delete">Cancelar</button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Observação (Opcional):</label>
-                        <input type="text" id="productDescription" placeholder="Ex: Prateleira 2">
+
+                    <div id="imagePreviewContainer" class="hidden">
+                        <img id="imagePreview" alt="Foto do Alimento">
+                        <button id="retakeBtn" class="btn-secondary">Tirar Outra Foto</button>
                     </div>
-                    <div class="form-group">
-                        <label>Data de Validade:</label>
+
+                    <div id="loading" class="hidden">
+                        <p>⏳ Lendo data de validade na imagem...</p>
+                    </div>
+
+                    <!-- FORMULÁRIO DO PRODUTO (Mostrado após a foto ou se preferir digitar) -->
+                    <form id="productForm" class="hidden">
+                        <label for="productName">Nome do Alimento:</label>
+                        <input type="text" id="productName" placeholder="Ex: Leite, Arroz, Queijo" required>
+
+                        <label for="productDescription">Observação (Opcional):</label>
+                        <input type="text" id="productDescription" placeholder="Ex: Geladeira, Prateleira 2">
+
+                        <label for="expiryDate">Data de Validade (DD/MM/AAAA):</label>
                         <input type="date" id="expiryDate" required>
-                    </div>
-                    <button type="submit" id="saveProductBtn" class="btn btn-emerald">Salvar no Estoque</button>
-                </form>
-            </section>
 
-            <!-- ABA ESTOQUE -->
-            <section id="viewInventory" class="card eco-card tab-content hidden">
-                <!-- NAVEGAÇÃO DE ABAS -->
-<div class="tabs-navigation">
-    <button id="tabScanner" class="active">📷 Escanear Alimento</button>
-    <button id="tabInventory">📦 Seu Estoque</button>
-    <button id="tabDonation">🤝 Doar Alimentos</button>
-</div>
-
-<!-- VISTA DE DOAÇÕES (NOVA ABA) -->
-<div id="viewDonation" class="tab-content hidden">
-    <h2> Instituições e Locais para Doação</h2>
-    <p>Evite o desperdício destinando alimentos em bom estado para quem mais precisa.</p>
-    
-    <button class="btn-primary" onclick="buscarDoacaoMapa()" style="margin-top: 10px;">
-        📍 Encontrar Bancos de Alimentos no Google Maps
-    </button>
-
-    <div class="donation-grid">
-        <div class="donation-card">
-            <h3>🏛️ Mesa Brasil SESC</h3>
-            <p>A maior rede de bancos de alimentos da América Latina. Recebe sobra de alimentos próprios para consumo e redistribui para instituições sociais.</p>
-            <a href="https://www.sesc.com.br/atuacoes/assistencia/mesa-brasil/" target="_blank" class="btn-recipe" style="text-decoration:none; display:inline-block; margin-top:10px;">Saber Mais</a>
-        </div>
-
-        <div class="donation-card">
-            <h3>📦 Bancos de Alimentos Municipais</h3>
-            <p>Locais gerenciados pelas prefeituras para arrecadação de hortifrúti, grãos e mantimentos não perecíveis.</p>
-            <button class="btn-primary" onclick="buscarDoacaoMapa('banco de alimentos')" style="margin-top:10px;">Localizar Próximo</button>
-        </div>
-
-        <div class="donation-card">
-            <h3>⛪ Igrejas e ONGs Locais</h3>
-            <p>Paróquias, centros comunitários e ONGs de bairro costumam aceitar cestas básicas e alimentos secos dentro da validade.</p>
-            <button class="btn-primary" onclick="buscarDoacaoMapa('ong doacao de alimentos')" style="margin-top:10px;">Buscar ONGs</button>
-        </div>
-    </div>
-</div>
-                <div class="card-corner-accent top-r"></div>
-                <div class="card-header">
-                    <h2 class="title-modern">Seu Estoque Atual</h2>
+                        <button type="submit" id="saveProductBtn" class="btn-primary" style="margin-top: 10px;">Salvar no Estoque</button>
+                    </form>
                 </div>
-                <div id="inventoryList" class="inventory-grid"></div>
-            </section>
-        </div>
+            </div>
+
+            <!-- ABA 2: SEU ESTOQUE -->
+            <div id="viewInventory" class="tab-content hidden">
+                <h2 style="margin-bottom: 16px;">Seu Estoque de Alimentos</h2>
+                <div id="inventoryList" class="inventory-grid">
+                    <!-- Os cards dos alimentos e a barra de receitas combinadas serão renderizados aqui via app.js -->
+                </div>
+            </div>
+
+            <!-- ABA 3: DOAR ALIMENTOS -->
+            <div id="viewDonation" class="tab-content hidden">
+                <div class="card" style="margin-bottom: 0;">
+                    <h2>🤝 Instituições e Locais para Doação</h2>
+                    <p style="color: #475569; margin-bottom: 16px;">Evite o desperdício destinando alimentos em bom estado para quem mais precisa na sua região.</p>
+                    
+                    <button class="btn-primary" onclick="buscarDoacaoMapa()" style="margin-bottom: 24px;">
+                        📍 Encontrar Bancos de Alimentos no Mapa
+                    </button>
+
+                    <div class="donation-grid">
+                        <div class="donation-card">
+                            <h3>🏛️ Mesa Brasil SESC</h3>
+                            <p>A maior rede nacional de bancos de alimentos. Recebe sobras de alimentos próprios para consumo e redistribui para instituições sociais cadastradas.</p>
+                            <a href="https://www.sesc.com.br/atuacoes/assistencia/mesa-brasil/" target="_blank" class="btn-recipe" style="text-decoration:none; text-align:center;">Saber Mais</a>
+                        </div>
+
+                        <div class="donation-card">
+                            <h3>📦 Bancos Municipais</h3>
+                            <p>Locais gerenciados pelas prefeituras para arrecadação de hortifrúti, grãos e mantimentos não perecíveis (como arroz, feijão e macarrão).</p>
+                            <button class="btn-primary" onclick="buscarDoacaoMapa('banco de alimentos municipal')">Localizar Próximo</button>
+                        </div>
+
+                        <div class="donation-card">
+                            <h3>⛪ Igrejas e ONGs Locais</h3>
+                            <p>Paróquias, centros comunitários e ONGs de bairro costumam aceitar cestas básicas e alimentos secos dentro do prazo de validade.</p>
+                            <button class="btn-primary" onclick="buscarDoacaoMapa('ong doacao de alimentos')">Buscar ONGs</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
     </main>
 
+    <!-- SCRIPTS DO FIREBASE (COMPATIBILIDADE v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- SEU SCRIPT PRINCIPAL JAVASCRIPT -->
     <script src="app.js"></script>
 </body>
 </html>
