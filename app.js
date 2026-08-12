@@ -20,11 +20,8 @@ const db = firebase.firestore();
 // FUNÇÕES UTILITÁRIAS (DATA, NOTIFICAÇÃO E RECEITAS)
 // =============================================================
 
-// Converter e formatar data para DD/MM/AAAA
 function formatarDataBR(dataString) {
     if (!dataString) return 'Data não informada';
-    
-    // Se estiver no formato YYYY-MM-DD (Padrão de inputs date)
     if (dataString.includes('-')) {
         const partes = dataString.split('-');
         if (partes.length === 3) {
@@ -34,14 +31,12 @@ function formatarDataBR(dataString) {
     return dataString;
 }
 
-// Pedir permissão de notificações no navegador
 function solicitarPermissaoNotificacao() {
     if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission();
     }
 }
 
-// Verificar alimentos e enviar notificações de 5, 3 e 1 dia antes
 function checarVencimentos(produtos) {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
 
@@ -50,16 +45,12 @@ function checarVencimentos(produtos) {
 
     produtos.forEach(item => {
         if (!item.validade) return;
-
         let dataValidade = null;
 
-        // Trata DD/MM/AAAA
         if (item.validade.includes('/')) {
             const [dia, mes, ano] = item.validade.split('/');
             dataValidade = new Date(ano, mes - 1, dia);
-        } 
-        // Trata YYYY-MM-DD
-        else if (item.validade.includes('-')) {
+        } else if (item.validade.includes('-')) {
             const [ano, mes, dia] = item.validade.split('-');
             dataValidade = new Date(ano, mes - 1, dia);
         }
@@ -79,10 +70,23 @@ function checarVencimentos(produtos) {
     });
 }
 
-// Abrir busca de receitas para o alimento
-window.buscarReceitas = function(nomeAlimento) {
-    const query = encodeURIComponent(`receitas com ${nomeAlimento}`);
-    window.open(`https://www.tudogostoso.com.br/busca?q=${query}`, '_blank');
+// BUSCA DE RECEITA COM MÚLTIPLOS ITENS SELECIONADOS
+window.buscarReceitaCombinada = function() {
+    const selecionados = document.querySelectorAll('.item-checkbox:checked');
+    if (selecionados.length === 0) {
+        alert("⚠️ Selecione pelo menos um alimento no seu estoque!");
+        return;
+    }
+
+    const ingredientes = Array.from(selecionados).map(cb => cb.dataset.nome);
+    const termoBusca = encodeURIComponent(`receita com ${ingredientes.join(' ')}`);
+    window.open(`https://www.tudogostoso.com.br/busca?q=${termoBusca}`, '_blank');
+};
+
+// ABRIR MAPA DE DOAÇÕES
+window.buscarDoacaoMapa = function(termo = "banco de alimentos doacao") {
+    const query = encodeURIComponent(termo);
+    window.open(`https://www.google.com/maps/search/${query}`, '_blank');
 };
 
 // =============================================================
@@ -104,12 +108,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const userEmail = document.getElementById('userEmail');
     const logoutBtn = document.getElementById('logoutBtn');
 
+    // ABAS
     const tabScanner = document.getElementById('tabScanner');
     const tabInventory = document.getElementById('tabInventory');
+    const tabDonation = document.getElementById('tabDonation');
     const viewScanner = document.getElementById('viewScanner');
     const viewInventory = document.getElementById('viewInventory');
+    const viewDonation = document.getElementById('viewDonation');
     const inventoryList = document.getElementById('inventoryList');
 
+    // CÂMERA
     const startCameraBtn = document.getElementById('startCameraBtn');
     const stopCameraBtn = document.getElementById('stopCameraBtn');
     const cameraStartBox = document.getElementById('cameraStartBox');
@@ -151,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // AUTENTICAÇÃO DIRETA (SEM CÓDIGO DE VERIFICAÇÃO)
     if (authForm) {
         authForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -163,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isLoginMode) {
                 auth.signInWithEmailAndPassword(email, password)
-                    .catch((err) => {
+                    .catch(() => {
                         alert("❌ E-mail ou senha incorretos.");
                         authSubmitBtn.innerText = "Entrar";
                         validarForm();
@@ -183,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // MONITOR DE LOGIN DO USUÁRIO
     auth.onAuthStateChanged((user) => {
         if (user) {
             authSection.classList.add('hidden');
@@ -204,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         auth.signOut();
     });
 
-    // CARREGAR ESTOQUE DO FIRESTORE E VERIFICAR VENCIMENTOS
+    // CARREGAR ESTOQUE
     function carregarEstoque(userId) {
         if (!inventoryList) return;
 
@@ -219,6 +225,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                // BARRA MULTI-SELEÇÃO DE RECEITAS
+                const barHTML = `
+                    <div class="multi-select-bar" style="grid-column: 1/-1;">
+                        <span>💡 Selecione os alimentos desejados para buscar receitas combinadas:</span>
+                        <button class="btn-recipe" onclick="buscarReceitaCombinada()">🔍 Combinar Selecionados</button>
+                    </div>
+                `;
+                inventoryList.insertAdjacentHTML('beforeend', barHTML);
+
                 snapshot.forEach((doc) => {
                     const item = doc.data();
                     listaProdutos.push(item);
@@ -227,24 +242,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     const card = document.createElement('div');
                     card.className = 'inventory-card';
 
+                    // CAPTURA A FOTO ORIGINAL EM CORES
                     const imgHTML = item.fotoBase64 
                         ? `<img src="${item.fotoBase64}" alt="${item.nome}">`
-                        : `<div style="height:100px; background:#e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center;">📦 Sem Foto</div>`;
+                        : `<div style="height:120px; background:#f1f5f9; border-radius:8px; display:flex; align-items:center; justify-content:center;">📦 Sem Foto</div>`;
 
                     card.innerHTML = `
-                        ${imgHTML}
-                        <h4>${item.nome}</h4>
-                        <p>${item.descricao || 'Sem observações'}</p>
-                        <span class="badge-date">📅 Validade: ${dataFormatada}</span>
-                        <div style="display: flex; gap: 8px; margin-top: 10px;">
-                            <button type="button" class="btn-recipe" style="background:#059669; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; flex:1;" onclick="buscarReceitas('${item.nome}')">💡 Receitas</button>
-                            <button type="button" class="btn-delete" style="background:#dc2626; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;" onclick="deletarItem('${doc.id}')">Excluir</button>
+                        <div class="inventory-card-header">
+                            <input type="checkbox" class="item-checkbox" data-nome="${item.nome}" title="Selecionar para receita">
+                            <button type="button" class="btn-delete" onclick="deletarItem('${doc.id}')">Excluir</button>
                         </div>
+                        ${imgHTML}
+                        <h4 style="margin: 8px 0 4px 0;">${item.nome}</h4>
+                        <p style="font-size:0.85rem; color:#64748b;">${item.descricao || 'Sem observações'}</p>
+                        <span class="badge-date" style="display:block; margin-top:6px; font-weight:600;">📅 Validade: ${dataFormatada}</span>
                     `;
                     inventoryList.appendChild(card);
                 });
 
-                // Executa verificação de alertas de 5, 3 e 1 dia
                 checarVencimentos(listaProdutos);
 
             }, (err) => {
@@ -258,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // CONTROLE DA CÂMERA E OCR DE DATA (DD/MM/AAAA)
+    // CÂMERA (COM CAPTURA TOTALMENTE COLORIDA)
     if (startCameraBtn) {
         startCameraBtn.addEventListener('click', async () => {
             try {
@@ -294,10 +309,11 @@ document.addEventListener('DOMContentLoaded', () => {
             cameraCanvas.width = 450;
             cameraCanvas.height = 320;
 
-            ctx.filter = 'grayscale(100%) contrast(180%)';
+            // REMOVIDO O FILTRO PRETO E BRANCO: Imagem agora é salva 100% colorida
+            ctx.filter = 'none';
             ctx.drawImage(cameraVideo, 0, 0, 450, 320);
 
-            capturedBase64Image = cameraCanvas.toDataURL('image/jpeg', 0.5);
+            capturedBase64Image = cameraCanvas.toDataURL('image/jpeg', 0.85);
             imagePreview.src = capturedBase64Image;
 
             stopCamera();
@@ -305,13 +321,13 @@ document.addEventListener('DOMContentLoaded', () => {
             imagePreviewContainer.classList.remove('hidden');
             document.getElementById('loading').classList.remove('hidden');
 
+            // OCR para ler apenas a data no formato DD/MM/AAAA
             Tesseract.recognize(capturedBase64Image, 'por', {
                 tessedit_char_whitelist: '0123456789/-.'
             }).then(({ data: { text } }) => {
                 document.getElementById('loading').classList.add('hidden');
                 productForm.classList.remove('hidden');
 
-                // Procura padrões de data DD/MM/AAAA ou DD/MM/YY
                 const dateMatch = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/);
                 if (dateMatch) {
                     const expiryInput = document.getElementById('expiryDate');
@@ -320,8 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (partes.length === 3) {
                         let ano = partes[2];
                         if (ano.length === 2) ano = "20" + ano;
-                        
-                        // Define o valor formatado
                         expiryInput.value = `${ano}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
                         alert(`⚡ Data identificada: ${partes[0]}/${partes[1]}/${ano}`);
                     }
@@ -341,7 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // SALVAR ITEM NO FIRESTORE COM FORMATO DD/MM/AAAA
     if (productForm) {
         productForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -356,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             db.collection('produtos').add({
                 nome: document.getElementById('productName').value,
                 descricao: document.getElementById('productDescription').value,
-                validade: formatarDataBR(rawValidade), // Salva no formato DD/MM/AAAA
+                validade: formatarDataBR(rawValidade),
                 fotoBase64: capturedBase64Image,
                 userId: currentUserId,
                 dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
@@ -376,24 +389,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ABAS DA INTERFACE
-    if (tabScanner && tabInventory) {
-        tabScanner.addEventListener('click', () => {
-            tabScanner.classList.add('active');
-            tabInventory.classList.remove('active');
-            viewScanner.classList.add('active-tab');
-            viewScanner.classList.remove('hidden');
-            viewInventory.classList.remove('active-tab');
-            viewInventory.classList.add('hidden');
-        });
+    // ALTERNÂNCIA DE ABAS
+    function esconderTodasAbas() {
+        viewScanner.classList.add('hidden');
+        viewInventory.classList.add('hidden');
+        if (viewDonation) viewDonation.classList.add('hidden');
 
+        tabScanner.classList.remove('active');
+        tabInventory.classList.remove('active');
+        if (tabDonation) tabDonation.classList.remove('active');
+    }
+
+    if (tabScanner) {
+        tabScanner.addEventListener('click', () => {
+            esconderTodasAbas();
+            tabScanner.classList.add('active');
+            viewScanner.classList.remove('hidden');
+        });
+    }
+
+    if (tabInventory) {
         tabInventory.addEventListener('click', () => {
+            esconderTodasAbas();
             tabInventory.classList.add('active');
-            tabScanner.classList.remove('active');
-            viewInventory.classList.add('active-tab');
             viewInventory.classList.remove('hidden');
-            viewScanner.classList.remove('active-tab');
-            viewScanner.classList.add('hidden');
+            stopCamera();
+        });
+    }
+
+    if (tabDonation) {
+        tabDonation.addEventListener('click', () => {
+            esconderTodasAbas();
+            tabDonation.classList.add('active');
+            viewDonation.classList.remove('hidden');
             stopCamera();
         });
     }
