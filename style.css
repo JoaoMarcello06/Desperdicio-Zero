@@ -1,184 +1,115 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-:root {
-    --bg-main: #F2F6F3;
-    --card-bg: #FFFFFF;
-    --primary-eco: #059669;
-    --primary-hover: #047857;
-    --accent-mint: #D1FAE5;
-    --text-dark: #0F172A;
-    --text-muted: #64748B;
-    --border-color: #E2E8F0;
-    --radius-lg: 20px;
-    --radius-md: 12px;
+/* =============================================================
+   1. RESET E VARIÁVEIS GERAIS
+   ============================================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    background-color: var(--bg-main);
-    color: var(--text-dark);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    padding-bottom: 2rem;
-    position: relative;
-    overflow-x: hidden;
+    background-color: #f8fafc;
+    color: #1e293b;
+    line-height: 1.5;
 }
-
-/* DETALHES DECORATIVOS NOS CANTOS DA TELA */
-.corner-leaf {
-    position: fixed;
-    font-size: 2.5rem;
-    opacity: 0.25;
-    pointer-events: none;
-    z-index: 0;
-}
-.corner-leaf.top-left { top: 10px; left: 15px; transform: rotate(-20deg); }
-.corner-leaf.top-right { top: 10px; right: 15px; transform: rotate(20deg); }
-
-/* CABEÇALHO */
-.main-header {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 1.5rem 1.2rem 1rem;
-    position: relative;
-    z-index: 1;
-}
-.header-content { display: flex; justify-content: space-between; align-items: center; }
-.eyebrow { font-size: 0.75rem; font-weight: 800; color: var(--primary-eco); letter-spacing: 1.2px; }
-h1 { font-size: 1.8rem; font-weight: 800; color: var(--text-dark); }
-.user-badge { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-muted); }
-.btn-logout { background: #E2E8F0; border: none; padding: 6px 12px; border-radius: 20px; font-weight: 600; cursor: pointer; }
-
-main { max-width: 800px; margin: 0 auto; padding: 0 1rem; position: relative; z-index: 1; }
-
-/* CARD COM DETALHES NOS CANTOS */
-.card.eco-card {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Detalhe visual nos cantos do Card */
-.card-corner-accent {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--accent-mint) 0%, transparent 70%);
-    pointer-events: none;
-}
-.card-corner-accent.top-r { top: -15px; right: -15px; }
-.card-corner-accent.bottom-l { bottom: -15px; left: -15px; }
-
-/* BOTÕES */
-.btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.btn-emerald { background: var(--primary-eco); color: white; }
-.btn-emerald:hover { background: var(--primary-hover); }
-
-/* BOTÃO DESABILITADO (CINZA) */
-.btn:disabled {
-    background-color: #CBD5E1 !important;
-    color: #64748B !important;
-    cursor: not-allowed;
-    box-shadow: none !important;
-}
-
-.btn-link { background: none; border: none; color: var(--text-muted); font-size: 0.85rem; cursor: pointer; width: 100%; text-align: center; }
-
-/* ENTRADA DE CÓDIGO DE 6 DÍGITOS (OTP) */
-.otp-container {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 1.5rem;
-}
-.otp-input {
-    width: 45px;
-    height: 55px;
-    text-align: center;
-    font-size: 1.4rem;
-    font-weight: 800;
-    border: 2px solid var(--border-color);
-    border-radius: 10px;
-    background: #F8FAFC;
-    outline: none;
-}
-.otp-input:focus {
-    border-color: var(--primary-eco);
-    background: white;
-    box-shadow: 0 0 0 3px var(--accent-mint);
-}
-
-/* ABAS */
-.tabs-container {
-    display: flex; gap: 10px; background: #E2E8F0; padding: 6px; border-radius: 30px; margin-bottom: 1.5rem;
-}
-.tab-pill {
-    flex: 1; padding: 12px; border: none; border-radius: 25px; background: transparent;
-    font-weight: 600; font-size: 0.95rem; color: var(--text-muted); cursor: pointer;
-}
-.tab-pill.active { background: var(--card-bg); color: var(--primary-eco); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-
-/* CÂMERA */
-.start-camera-box { text-align: center; padding: 2.5rem 1rem; border: 2px dashed #CBD5E1; border-radius: var(--radius-md); background: #F8FAFC; margin-top: 1rem; }
-.icon-circle { font-size: 2.5rem; background: var(--accent-mint); width: 70px; height: 70px; line-height: 70px; border-radius: 50%; margin: 0 auto 1rem; }
-.camera-container { position: relative; width: 100%; height: 320px; background: #000; border-radius: var(--radius-md); overflow: hidden; margin-top: 1rem; }
-#cameraVideo { width: 100%; height: 100%; object-fit: cover; }
-.focus-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 90px; border: 2px solid #10B981; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); }
-.scan-line { width: 100%; height: 2px; background: #10B981; position: absolute; top: 0; left: 0; animation: scan 2s infinite linear; }
-@keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
-.camera-controls { position: absolute; bottom: 15px; left: 15px; right: 15px; display: flex; gap: 10px; }
-.btn-capture { background: #10B981; color: white; flex: 1; }
-.btn-icon-cancel { background: rgba(255,255,255,0.2); color: white; border: none; width: 48px; border-radius: var(--radius-md); font-size: 1.2rem; cursor: pointer; }
-
-/* ESTOQUE GRID */
-.inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-top: 1rem; }
-.inventory-card { background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-.inventory-card img { width: 100%; height: 130px; object-fit: cover; border-radius: 8px; }
-.badge-date { display: inline-block; background: var(--accent-mint); color: var(--primary-eco); font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; }
-.btn-delete { background: #FEE2E2; color: #DC2626; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-
-/* FORMULÁRIO E UTILITÁRIOS */
-.form-spaced { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
-input[type="text"], input[type="email"], input[type="password"], input[type="date"] {
-    width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; outline: none;
-}
-input:focus { border-color: var(--primary-eco); }
-
-.badge-eco { background: var(--accent-mint); color: var(--primary-eco); font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
-.title-modern { font-size: 1.4rem; font-weight: 700; }
-.hidden { display: none !important; }
-.tab-content { display: none; }
-.tab-content.active-tab { display: block; }
-#imagePreview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin: 1rem 0; }
-.spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-eco); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 10px auto; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.loading-box { text-align: center; padding: 10px; font-size: 0.9rem; color: var(--primary-eco); font-weight: 600; }
 
 /* =============================================================
-   ESTILO DOS BOTÕES (INSPIRADO EM MERCADO LIVRE / SAMSUNG)
+   2. CABEÇALHO E CONTAINER PRINCIPAL
    ============================================================= */
-.btn-primary, .btn-secondary, .btn-recipe, .btn-delete, .btn-action {
+.app-header {
+    background-color: #ffffff;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.app-header h1 {
+    font-size: 1.5rem;
+    color: #2563eb;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px 40px 16px;
+}
+
+/* =============================================================
+   3. CARDS E FORMULÁRIOS
+   ============================================================= */
+.card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.card h2 {
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    color: #0f172a;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: -4px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"] {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    background-color: #f8fafc;
+    transition: all 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus {
+    outline: none;
+    border-color: #2563eb;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* =============================================================
+   4. ESTILO DOS BOTÕES (INSPIRADO EM MERCADO LIVRE / SAMSUNG)
+   ============================================================= */
+.btn-primary, .btn-secondary, .btn-recipe, .btn-delete {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 12px 20px;
-    border-radius: 50px; /* Estilo 'Pill' moderno estilo Samsung */
+    border-radius: 50px; /* Estilo 'Pill' moderno */
     font-size: 0.95rem;
     font-weight: 600;
     border: none;
@@ -188,22 +119,33 @@ input:focus { border-color: var(--primary-eco); }
 }
 
 .btn-primary {
-    background-color: #2563eb; /* Azul moderno */
+    background-color: #2563eb; /* Azul moderno Samsung */
     color: #ffffff;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background-color: #1d4ed8;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
-.btn-primary:active, .btn-recipe:active, .btn-delete:active {
-    transform: scale(0.97);
+.btn-primary:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: #334155;
+}
+
+.btn-secondary:hover {
+    background-color: #cbd5e1;
 }
 
 .btn-recipe {
-    background-color: #ffe600; /* Amarelo estilo Mercado Livre */
+    background-color: #ffe600; /* Amarelo Mercado Livre */
     color: #2d3277;
     font-weight: 700;
 }
@@ -217,6 +159,9 @@ input:focus { border-color: var(--primary-eco); }
     background-color: #fee2e2;
     color: #dc2626;
     border-radius: 12px;
+    box-shadow: none;
+    padding: 8px 14px;
+    font-size: 0.85rem;
 }
 
 .btn-delete:hover {
@@ -224,22 +169,91 @@ input:focus { border-color: var(--primary-eco); }
     color: #991b1b;
 }
 
-/* Checkbox personalizado para seleção de alimentos */
-.item-checkbox {
-    width: 20px;
-    height: 20px;
-    accent-color: #2563eb;
-    cursor: pointer;
+.btn-primary:active, .btn-recipe:active, .btn-delete:active {
+    transform: scale(0.97);
 }
 
-.inventory-card-header {
+/* =============================================================
+   5. NAVEGAÇÃO DE ABAS
+   ============================================================= */
+.tabs-navigation {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+    gap: 10px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+    overflow-x: auto; /* Permite scroll no celular se faltar espaço */
 }
 
-/* Barra Flutuante de Seleção Múltipla */
+.tabs-navigation button {
+    background: transparent;
+    border: none;
+    padding: 10px 18px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tabs-navigation button:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.tabs-navigation button.active {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =============================================================
+   6. CÂMERA E PREVIEW DE IMAGEM
+   ============================================================= */
+#cameraActiveBox, #imagePreviewContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+video, #imagePreview {
+    width: 100%;
+    max-width: 450px;
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.camera-actions {
+    display: flex;
+    gap: 12px;
+}
+
+#loading {
+    text-align: center;
+    padding: 16px;
+    color: #2563eb;
+    font-weight: 600;
+    background: #eff6ff;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+/* =============================================================
+   7. ESTOQUE E BARRA DE SELEÇÃO
+   ============================================================= */
 .multi-select-bar {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -247,28 +261,105 @@ input:focus { border-color: var(--primary-eco); }
     border-radius: 16px;
     margin-bottom: 16px;
     display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    grid-column: 1/-1;
 }
 
-/* Aba de Doações */
+.multi-select-bar span {
+    font-weight: 500;
+    color: #334155;
+    font-size: 0.95rem;
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.inventory-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+}
+
+.inventory-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.item-checkbox {
+    width: 20px;
+    height: 20px;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.inventory-card img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.badge-date {
+    display: inline-block;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-top: auto;
+}
+
+/* =============================================================
+   8. ABA DE DOAÇÕES
+   ============================================================= */
 .donation-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
-    margin-top: 16px;
+    margin-top: 24px;
 }
 
 .donation-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
-    padding: 20px;
+    padding: 24px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
 }
 
 .donation-card h3 {
     margin-top: 0;
+    margin-bottom: 12px;
     color: #1e293b;
+    font-size: 1.2rem;
+}
+
+.donation-card p {
+    font-size: 0.95rem;
+    color: #475569;
+    margin-bottom: 16px;
+    flex-grow: 1;
+}
+
+/* =============================================================
+   9. CLASSES UTILITÁRIAS
+   ============================================================= */
+.hidden {
+    display: none !important;
 }
