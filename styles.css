@@ -438,68 +438,87 @@ video, #imagePreview {
 }
 
 /* =============================================================
-   STATUS DE VALIDADE (CORES VIVAS, SÓLIDAS E DE ELEVADA ACESSIBILIDADE)
+   STATUS DE VALIDADE (CORES FORTES E VIVAS DE ALTA VISIBILIDADE)
    ============================================================= */
 
-/* VERDE: Mais de 20 dias (Verde "Seu Estoque" - #059669) */
+/* --- VERDE (#059669 - Mesma cor do botão 'Seu Estoque') --- */
+.status-verde,
 .inventory-card.status-verde,
-.card-item.status-verde {
+.cartao-de-inventario.status-verde,
+.cartão-de-inventário.status-verde {
     background-color: #059669 !important;
-    border: 2px solid #047857 !important;
+    border: 3px solid #047857 !important;
     color: #ffffff !important;
 }
 
-.inventory-card.status-verde h4,
-.inventory-card.status-verde p {
+.status-verde h4, .status-verde p, .status-verde span {
     color: #ffffff !important;
 }
 
-.inventory-card.status-verde .badge-date,
-.inventory-card.status-verde .badge-validade,
-.card-item.status-verde .badge-validade {
+.status-verde .badge-date, 
+.status-verde .badge-validade {
     background-color: #047857 !important;
     color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
-/* AMARELO: Entre 10 e 20 dias (Âmbar Vivo - #d97706) */
+/* --- AMARELO / ÂMBAR DOURADO (#D97706 - Alto Contraste) --- */
+.status-amarelo,
 .inventory-card.status-amarelo,
-.card-item.status-amarelo {
+.cartao-de-inventario.status-amarelo,
+.cartão-de-inventário.status-amarelo {
     background-color: #d97706 !important;
-    border: 2px solid #b45309 !important;
+    border: 3px solid #b45309 !important;
     color: #ffffff !important;
 }
 
-.inventory-card.status-amarelo h4,
-.inventory-card.status-amarelo p {
+.status-amarelo h4, .status-amarelo p, .status-amarelo span {
     color: #ffffff !important;
 }
 
-.inventory-card.status-amarelo .badge-date,
-.inventory-card.status-amarelo .badge-validade,
-.card-item.status-amarelo .badge-validade {
+.status-amarelo .badge-date, 
+.status-amarelo .badge-validade {
     background-color: #b45309 !important;
     color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
-/* VERMELHO: Menos de 10 dias (Vermelho Marcante - #dc2626) */
+/* --- VERMELHO VIVO (#DC2626 - Alerta Claro) --- */
+.status-vermelho,
 .inventory-card.status-vermelho,
-.card-item.status-vermelho {
+.cartao-de-inventario.status-vermelho,
+.cartão-de-inventário.status-vermelho {
     background-color: #dc2626 !important;
-    border: 2px solid #b91c1c !important;
+    border: 3px solid #b91c1c !important;
     color: #ffffff !important;
 }
 
-.inventory-card.status-vermelho h4,
-.inventory-card.status-vermelho p {
+.status-vermelho h4, .status-vermelho p, .status-vermelho span {
     color: #ffffff !important;
 }
 
-.inventory-card.status-vermelho .badge-date,
-.inventory-card.status-vermelho .badge-validade,
-.card-item.status-vermelho .badge-validade {
+.status-vermelho .badge-date, 
+.status-vermelho .badge-validade {
     background-color: #b91c1c !important;
     color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+/* --- BOTÃO DE EXCLUIR E CAMPO 'SEM IMAGEM' EM CARTÕES COLORIDOS --- */
+.status-verde .btn-delete,
+.status-amarelo .btn-delete,
+.status-vermelho .btn-delete {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    font-weight: 700 !important;
+    border: none !important;
+}
+
+.status-verde .no-image-placeholder,
+.status-amarelo .no-image-placeholder,
+.status-vermelho .no-image-placeholder {
+    background-color: rgba(0, 0, 0, 0.18) !important;
+    color: #ffffff !important;
+    border: 2px dashed rgba(255, 255, 255, 0.5) !important;
+    font-weight: 600 !important;
 }
