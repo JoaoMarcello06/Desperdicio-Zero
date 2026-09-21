@@ -21,16 +21,39 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 /* =============================================================
-   1. REGISTO DO SERVICE WORKER (PWA)
+   1. REGISTO DO SERVICE WORKER COM AUTO-UPDATE (PWA)
    ============================================================= */
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker registado com sucesso:', reg.scope))
+            .then(reg => {
+                console.log('Service Worker registado com sucesso:', reg.scope);
+
+                // Deteta se existe uma nova versão disponível
+                reg.onupdatefound = () => {
+                    const installingWorker = reg.installing;
+                    if (installingWorker) {
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('Nova versão encontrada! A recarregar...');
+                                window.location.reload();
+                            }
+                        };
+                    }
+                };
+            })
             .catch(err => console.error('Falha ao registar o Service Worker:', err));
     });
-}
 
+    // Recarrega a página assim que o novo Service Worker assumir o controlo
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
+    });
+}
 /* =============================================================
    2. FUNÇÕES AUXILIARES DE DATAS E STATUS
    ============================================================= */
