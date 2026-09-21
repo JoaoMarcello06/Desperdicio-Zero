@@ -1,13 +1,17 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-var firebaseConfig = {
-  apiKey: "AIzaSyC8B3XunC9USG4zUK6R30jaCZbaB4VPrDI",
-  authDomain: "desperdiciozero-9da8e.firebaseapp.com",
-  projectId: "desperdiciozero-9da8e",
-  storageBucket: "desperdiciozero-9da8e.firebasestorage.app",
-  messagingSenderId: "671256144069",
-  appId: "1:671256144069:web:8546141f903dfaee5968ac",
-  measurementId: "G-4G5V639EEQ"
-};
+// =============================================================
+// CONFIGURAÇÃO E INICIALIZAÇÃO DO FIREBASE (PROTEGIDO CONTRA ERROS)
+// =============================================================
+if (typeof firebaseConfig === 'undefined') {
+    var firebaseConfig = {
+        apiKey: "AIzaSyC8B3XunC9USG4zUK6R30jaCZbaB4VPrDI",
+        authDomain: "desperdiciozero-9da8e.firebaseapp.com",
+        projectId: "desperdiciozero-9da8e",
+        storageBucket: "desperdiciozero-9da8e.firebasestorage.app",
+        messagingSenderId: "671256144069",
+        appId: "1:671256144069:web:8546141f903dfaee5968ac",
+        measurementId: "G-4G5V639EEQ"
+    };
+}
 
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
@@ -28,6 +32,39 @@ function formatarDataBR(dataString) {
         }
     }
     return dataString;
+}
+
+// CÁLCULO DAS CORES DE STATUS DA VALIDADE
+function obterClasseStatusValidade(validadeStr) {
+    if (!validadeStr) return 'status-verde';
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    let dataValidade = null;
+    if (validadeStr.includes('/')) {
+        const [dia, mes, ano] = validadeStr.split('/');
+        dataValidade = new Date(ano, mes - 1, dia);
+    } else if (validadeStr.includes('-')) {
+        const [ano, mes, dia] = validadeStr.split('-');
+        dataValidade = new Date(ano, mes - 1, dia);
+    } else {
+        dataValidade = new Date(validadeStr);
+    }
+
+    if (!dataValidade || isNaN(dataValidade.getTime())) return 'status-verde';
+
+    dataValidade.setHours(0, 0, 0, 0);
+    const diferencaTempo = dataValidade.getTime() - hoje.getTime();
+    const diasRestantes = Math.ceil(diferencaTempo / (1000 * 3600 * 24));
+
+    if (diasRestantes < 10) {
+        return 'status-vermelho'; // Menos de 10 dias (Vermelho)
+    } else if (diasRestantes >= 10 && diasRestantes <= 20) {
+        return 'status-amarelo';  // De 10 a 20 dias (Amarelo)
+    } else {
+        return 'status-verde';    // Mais de 20 dias (Verde)
+    }
 }
 
 function solicitarPermissaoNotificacao() {
@@ -310,8 +347,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     listaProdutos.push(item);
 
                     const dataFormatada = formatarDataBR(item.validade);
+                    const statusClasse = obterClasseStatusValidade(item.validade);
+
                     const card = document.createElement('div');
-                    card.className = 'inventory-card';
+                    card.className = `inventory-card ${statusClasse}`;
 
                     const imgHTML = item.fotoBase64 
                         ? `<img src="${item.fotoBase64}" alt="${item.nome}">`
