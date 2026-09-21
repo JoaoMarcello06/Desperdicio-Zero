@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'desperdicio-zero-v2';
+const CACHE_NAME = 'desperdicio-zero-v3';
 
 const ASSETS_TO_CACHE = [
     './',
