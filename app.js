@@ -17,7 +17,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 /* =============================================================
-   FUNÇÕES DE SUPORTE E UTILITÁRIOS
+   FUNÇÕES AUXILIARES
    ============================================================= */
 function formatarDataBR(dataString) {
     if (!dataString) return 'Data não informada';
@@ -75,11 +75,12 @@ window.buscarDoacaoMapa = function(termo = "banco de alimentos doacao") {
 };
 
 /* =============================================================
-   INICIALIZAÇÃO DO SISTEMA
+   CÓDIGO PRINCIPAL DA APLICAÇÃO
    ============================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     solicitarPermissaoNotificacao();
 
+    // Elementos da Interface
     const authSection = document.getElementById('authSection');
     const appSection = document.getElementById('appSection');
     const authForm = document.getElementById('authForm');
@@ -123,33 +124,36 @@ document.addEventListener('DOMContentLoaded', () => {
     let capturedBase64Image = ""; 
     let unsubscribeInventory = null;
 
-    /* AUTENTICAÇÃO */
+    /* --- AUTENTICAÇÃO --- */
     function validarForm() {
+        if (!authEmail || !authPassword) return;
         const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail.value.trim());
         const senhaValida = authPassword.value.length >= 6;
-        const nomeValido = isLoginMode || authName.value.trim().length > 0;
-        authSubmitBtn.disabled = !(emailValido && senhaValida && nomeValido);
+        const nomeValido = isLoginMode || (authName && authName.value.trim().length > 0);
+        if (authSubmitBtn) {
+            authSubmitBtn.disabled = !(emailValido && senhaValida && nomeValido);
+        }
     }
 
-    if (authEmail && authPassword && authName) {
-        authEmail.addEventListener('input', validarForm);
-        authPassword.addEventListener('input', validarForm);
-        authName.addEventListener('input', validarForm);
-    }
+    if (authEmail) authEmail.addEventListener('input', validarForm);
+    if (authPassword) authPassword.addEventListener('input', validarForm);
+    if (authName) authName.addEventListener('input', validarForm);
 
     if (toggleAuthMode) {
         toggleAuthMode.addEventListener('click', (e) => {
             e.preventDefault();
             isLoginMode = !isLoginMode;
-            authTitle.innerText = isLoginMode ? "Acesse sua Conta" : "Criar Nova Conta";
-            authSubmitBtn.innerText = isLoginMode ? "Entrar" : "Cadastrar";
-            toggleText.innerText = isLoginMode ? "Não tem uma conta?" : "Já tem uma conta?";
+            if (authTitle) authTitle.innerText = isLoginMode ? "Acesse sua Conta" : "Criar Nova Conta";
+            if (authSubmitBtn) authSubmitBtn.innerText = isLoginMode ? "Entrar" : "Cadastrar";
+            if (toggleText) toggleText.innerText = isLoginMode ? "Não tem uma conta?" : "Já tem uma conta?";
             toggleAuthMode.innerText = isLoginMode ? "Cadastre-se aqui" : "Entre aqui";
             
-            if (isLoginMode) {
-                nameFieldGroup.classList.add('hidden');
-            } else {
-                nameFieldGroup.classList.remove('hidden');
+            if (nameFieldGroup) {
+                if (isLoginMode) {
+                    nameFieldGroup.classList.add('hidden');
+                } else {
+                    nameFieldGroup.classList.remove('hidden');
+                }
             }
             validarForm();
         });
@@ -161,18 +165,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = authEmail.value.trim();
             const password = authPassword.value;
 
-            authSubmitBtn.disabled = true;
-            authSubmitBtn.innerText = "Aguarde...";
+            if (authSubmitBtn) {
+                authSubmitBtn.disabled = true;
+                authSubmitBtn.innerText = "Aguarde...";
+            }
 
             if (isLoginMode) {
                 auth.signInWithEmailAndPassword(email, password)
                     .catch((err) => {
                         alert("Erro de autenticação: " + err.message);
-                        authSubmitBtn.innerText = "Entrar";
+                        if (authSubmitBtn) authSubmitBtn.innerText = "Entrar";
                         validarForm();
                     });
             } else {
-                const nomeDigitado = authName.value.trim();
+                const nomeDigitado = authName ? authName.value.trim() : "";
                 auth.createUserWithEmailAndPassword(email, password)
                     .then((userCredential) => {
                         return userCredential.user.updateProfile({
@@ -180,11 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     })
                     .then(() => {
-                        authSubmitBtn.innerText = "Cadastrar";
+                        if (authSubmitBtn) authSubmitBtn.innerText = "Cadastrar";
                     })
                     .catch((err) => {
                         alert("Erro ao cadastrar: " + err.message);
-                        authSubmitBtn.innerText = "Cadastrar";
+                        if (authSubmitBtn) authSubmitBtn.innerText = "Cadastrar";
                         validarForm();
                     });
             }
@@ -193,8 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged((user) => {
         if (user) {
-            authSection.classList.add('hidden');
-            appSection.classList.remove('hidden');
+            if (authSection) authSection.classList.add('hidden');
+            if (appSection) appSection.classList.remove('hidden');
             if (userHeader) userHeader.classList.remove('hidden');
             
             const nomeExibicao = user.displayName || user.email.split('@')[0];
@@ -207,19 +213,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (productForm) productForm.classList.remove('hidden'); 
             carregarEstoque(user.uid);
         } else {
-            authSection.classList.remove('hidden');
-            appSection.classList.add('hidden');
+            if (authSection) authSection.classList.remove('hidden');
+            if (appSection) appSection.classList.add('hidden');
             if (userHeader) userHeader.classList.add('hidden');
             if (unsubscribeInventory) unsubscribeInventory();
             stopCamera();
         }
     });
 
-    if (logoutBtn) logoutBtn.addEventListener('click', () => {
-        auth.signOut();
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut();
+        });
+    }
 
-    /* NAVEGAÇÃO DE ABAS */
+    /* --- NAVEGAÇÃO DE ABAS --- */
     function esconderTodasAbas() {
         if (viewScanner) viewScanner.classList.add('hidden');
         if (viewInventory) viewInventory.classList.add('hidden');
@@ -234,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tabScanner.addEventListener('click', () => {
             esconderTodasAbas();
             tabScanner.classList.add('active');
-            viewScanner.classList.remove('hidden');
+            if (viewScanner) viewScanner.classList.remove('hidden');
         });
     }
 
@@ -242,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tabInventory.addEventListener('click', () => {
             esconderTodasAbas();
             tabInventory.classList.add('active');
-            viewInventory.classList.remove('hidden');
+            if (viewInventory) viewInventory.classList.remove('hidden');
             stopCamera();
         });
     }
@@ -251,12 +259,12 @@ document.addEventListener('DOMContentLoaded', () => {
         tabDonation.addEventListener('click', () => {
             esconderTodasAbas();
             tabDonation.classList.add('active');
-            viewDonation.classList.remove('hidden');
+            if (viewDonation) viewDonation.classList.remove('hidden');
             stopCamera();
         });
     }
 
-    /* ESTOQUE E ACOES DE ITENS */
+    /* --- GERENCIAMENTO DE ESTOQUE --- */
     window.buscarReceitaCombinada = function() {
         const selecionados = document.querySelectorAll('.item-checkbox:checked');
         if (selecionados.length === 0) {
@@ -280,7 +288,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         unsubscribeInventory = db.collection('produtos')
             .where('userId', '==', userId)
-            .orderBy('dataCriacao', 'desc')
             .onSnapshot((snapshot) => {
                 inventoryList.innerHTML = '';
                 const listaProdutos = [];
@@ -330,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    /* CAMERA E PROCESSAMENTO OCR OTIMIZADO */
+    /* --- CÂMERA E OCR --- */
     if (startCameraBtn) {
         startCameraBtn.addEventListener('click', async () => {
             try {
@@ -341,10 +348,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         height: { ideal: 480 }
                     }
                 });
-                cameraVideo.srcObject = videoStream;
-                cameraStartBox.classList.add('hidden');
-                cameraActiveBox.classList.remove('hidden');
-                imagePreviewContainer.classList.add('hidden');
+                if (cameraVideo) cameraVideo.srcObject = videoStream;
+                if (cameraStartBox) cameraStartBox.classList.add('hidden');
+                if (cameraActiveBox) cameraActiveBox.classList.remove('hidden');
+                if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
                 if (productForm) productForm.classList.add('hidden');
             } catch (err) {
                 alert("Acesso à câmera não permitido ou indisponível.");
@@ -365,9 +372,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (captureBtn) {
         captureBtn.addEventListener('click', () => {
+            if (!cameraCanvas || !cameraVideo) return;
             const ctx = cameraCanvas.getContext('2d');
             
-            /* Otimização de tamanho da imagem (Máximo 320px de largura) */
             const targetWidth = 320;
             const targetHeight = (cameraVideo.videoHeight / cameraVideo.videoWidth) * targetWidth || 240;
 
@@ -376,123 +383,95 @@ document.addEventListener('DOMContentLoaded', () => {
 
             ctx.drawImage(cameraVideo, 0, 0, targetWidth, targetHeight);
 
-            /* Compressão JPEG com 50% de qualidade para manter o arquivo leve */
             capturedBase64Image = cameraCanvas.toDataURL('image/jpeg', 0.5);
-            imagePreview.src = capturedBase64Image;
+            if (imagePreview) imagePreview.src = capturedBase64Image;
 
             stopCamera();
-            cameraStartBox.classList.add('hidden');
-            imagePreviewContainer.classList.remove('hidden');
+            if (cameraStartBox) cameraStartBox.classList.add('hidden');
+            if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
             if (loadingMessage) loadingMessage.classList.remove('hidden');
 
-            /* OCR Otimizado */
-            Tesseract.recognize(capturedBase64Image, 'por', {
-                tessedit_char_whitelist: '0123456789/-.'
-            }).then(({ data: { text } }) => {
-                if (loadingMessage) loadingMessage.classList.add('hidden');
-                if (productForm) productForm.classList.remove('hidden');
+            if (typeof Tesseract !== 'undefined') {
+                Tesseract.recognize(capturedBase64Image, 'por', {
+                    tessedit_char_whitelist: '0123456789/-.'
+                }).then(({ data: { text } }) => {
+                    if (loadingMessage) loadingMessage.classList.add('hidden');
+                    if (productForm) productForm.classList.remove('hidden');
 
-                const dateMatch = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/);
-                if (dateMatch) {
-                    const expiryInput = document.getElementById('expiryDate');
-                    const partes = dateMatch[0].replace(/-/g, '/').split('/');
-                    
-                    if (partes.length === 3) {
-                        let ano = partes[2];
-                        if (ano.length === 2) ano = "20" + ano;
-                        expiryInput.value = `${ano}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                    const dateMatch = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/);
+                    if (dateMatch) {
+                        const expiryInput = document.getElementById('expiryDate');
+                        if (expiryInput) {
+                            const partes = dateMatch[0].replace(/-/g, '/').split('/');
+                            if (partes.length === 3) {
+                                let ano = partes[2];
+                                if (ano.length === 2) ano = "20" + ano;
+                                expiryInput.value = `${ano}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                            }
+                        }
                     }
-                }
-            }).catch(() => {
+                }).catch(() => {
+                    if (loadingMessage) loadingMessage.classList.add('hidden');
+                    if (productForm) productForm.classList.remove('hidden');
+                });
+            } else {
                 if (loadingMessage) loadingMessage.classList.add('hidden');
                 if (productForm) productForm.classList.remove('hidden');
-            });
+            }
         });
     }
 
     if (retakeBtn) {
         retakeBtn.addEventListener('click', () => {
-            imagePreviewContainer.classList.add('hidden');
+            if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
             if (productForm) productForm.classList.add('hidden');
             capturedBase64Image = "";
-            startCameraBtn.click();
+            if (startCameraBtn) startCameraBtn.click();
         });
     }
 
-/* SALVAMENTO OTIMIZADO NO FIRESTORE */
-if (productForm) {
-    productForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const saveBtn = document.getElementById('saveProductBtn');
-        saveBtn.innerText = "Salvando...";
-        saveBtn.disabled = true;
+    /* --- SALVAMENTO DE PRODUTO --- */
+    if (productForm) {
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveProductBtn');
+            if (saveBtn) {
+                saveBtn.innerText = "Salvando...";
+                saveBtn.disabled = true;
+            }
 
-        const user = auth.currentUser;
-        if (!user) {
-            alert("Sessão expirada. Faça login novamente.");
-            saveBtn.innerText = "Salvar no Estoque";
-            saveBtn.disabled = false;
-            return;
-        }
+            const user = auth.currentUser;
+            if (!user) {
+                alert("Sessão expirada. Faça login novamente.");
+                if (saveBtn) {
+                    saveBtn.innerText = "Salvar no Estoque";
+                    saveBtn.disabled = false;
+                }
+                return;
+            }
 
-        const rawValidade = document.getElementById('expiryDate').value;
-        
-        let foiCancelado = false;
-        const timerSeguranca = setTimeout(() => {
-            foiCancelado = true;
-            saveBtn.innerText = "Salvar no Estoque";
-            saveBtn.disabled = false;
-            alert("O envio demorou muito. Verifique a sua ligação ou tente salvar sem foto.");
-        }, 12000);
-
-        db.collection('produtos').add({
-            nome: document.getElementById('productName').value.trim(),
-            descricao: document.getElementById('productDescription').value.trim(),
-            validade: formatarDataBR(rawValidade),
-            fotoBase64: capturedBase64Image || "",
-            userId: user.uid,
-            dataCriacao: new Date().toISOString()
-        }).then(() => {
-            clearTimeout(timerSeguranca);
-            if (foiCancelado) return;
-
-            productForm.reset();
-            capturedBase64Image = "";
+            const expiryInput = document.getElementById('expiryDate');
+            const rawValidade = expiryInput ? expiryInput.value : '';
+            const nameInput = document.getElementById('productName');
+            const descInput = document.getElementById('productDescription');
             
-            if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
-            if (cameraStartBox) cameraStartBox.classList.remove('hidden');
-            
-            saveBtn.innerText = "Salvar no Estoque";
-            saveBtn.disabled = false;
-            
-            if (tabInventory) tabInventory.click();
-        }).catch((err) => {
-            clearTimeout(timerSeguranca);
-            if (foiCancelado) return;
-
-            saveBtn.innerText = "Salvar no Estoque";
-            saveBtn.disabled = false;
-            alert("Erro do Firebase: " + err.message);
-        });
-    });
-}
-            
-            /* Temporizador para cancelar a tentativa se exceder 8 segundos */
             let foiCancelado = false;
             const timerSeguranca = setTimeout(() => {
                 foiCancelado = true;
-                saveBtn.innerText = "Salvar no Estoque";
-                saveBtn.disabled = false;
-                alert("O envio demorou muito. Verifique sua conexão com a internet ou se o banco de dados Firebase está ativo.");
-            }, 8000);
+                if (saveBtn) {
+                    saveBtn.innerText = "Salvar no Estoque";
+                    saveBtn.disabled = false;
+                }
+                alert("O envio demorou muito. Verifique sua conexão com a internet.");
+            }, 10000);
 
             db.collection('produtos').add({
-                nome: document.getElementById('productName').value.trim(),
-                descricao: document.getElementById('productDescription').value.trim(),
+                nome: nameInput ? nameInput.value.trim() : '',
+                descricao: descInput ? descInput.value.trim() : '',
                 validade: formatarDataBR(rawValidade),
-                fotoBase64: capturedBase64Image,
+                fotoBase64: capturedBase64Image || "",
                 userId: user.uid,
-                dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+                dataCriacao: new Date().toISOString()
             }).then(() => {
                 clearTimeout(timerSeguranca);
                 if (foiCancelado) return;
@@ -503,17 +482,21 @@ if (productForm) {
                 if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
                 if (cameraStartBox) cameraStartBox.classList.remove('hidden');
                 
-                saveBtn.innerText = "Salvar no Estoque";
-                saveBtn.disabled = false;
+                if (saveBtn) {
+                    saveBtn.innerText = "Salvar no Estoque";
+                    saveBtn.disabled = false;
+                }
                 
                 if (tabInventory) tabInventory.click();
             }).catch((err) => {
                 clearTimeout(timerSeguranca);
                 if (foiCancelado) return;
 
-                saveBtn.innerText = "Salvar no Estoque";
-                saveBtn.disabled = false;
-                alert("Erro ao salvar no banco de dados: " + err.message);
+                if (saveBtn) {
+                    saveBtn.innerText = "Salvar no Estoque";
+                    saveBtn.disabled = false;
+                }
+                alert("Erro do Firebase: " + err.message);
             });
         });
     }
