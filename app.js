@@ -21,522 +21,379 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 /* =============================================================
-   FUNÇÕES AUXILIARES
+   1. REGISTO DO SERVICE WORKER (PWA)
    ============================================================= */
-function formatarDataBR(dataString) {
-    if (!dataString) return 'Data não informada';
-    if (dataString.includes('-')) {
-        const partes = dataString.split('-');
-        if (partes.length === 3) {
-            return `${partes[2].padStart(2, '0')}/${partes[1].padStart(2, '0')}/${partes[0]}`;
-        }
-    }
-    return dataString;
-}
-
-// CÁLCULO DAS CORES DE STATUS DA VALIDADE
-function obterClasseStatusValidade(validadeStr) {
-    if (!validadeStr) return 'status-verde';
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    let dataValidade = null;
-    if (validadeStr.includes('/')) {
-        const [dia, mes, ano] = validadeStr.split('/');
-        dataValidade = new Date(ano, mes - 1, dia);
-    } else if (validadeStr.includes('-')) {
-        const [ano, mes, dia] = validadeStr.split('-');
-        dataValidade = new Date(ano, mes - 1, dia);
-    } else {
-        dataValidade = new Date(validadeStr);
-    }
-
-    if (!dataValidade || isNaN(dataValidade.getTime())) return 'status-verde';
-
-    dataValidade.setHours(0, 0, 0, 0);
-    const diferencaTempo = dataValidade.getTime() - hoje.getTime();
-    const diasRestantes = Math.ceil(diferencaTempo / (1000 * 3600 * 24));
-
-    if (diasRestantes < 10) {
-        return 'status-vermelho'; // Menos de 10 dias (Vermelho)
-    } else if (diasRestantes >= 10 && diasRestantes <= 20) {
-        return 'status-amarelo';  // De 10 a 20 dias (Amarelo)
-    } else {
-        return 'status-verde';    // Mais de 20 dias (Verde)
-    }
-}
-
-function solicitarPermissaoNotificacao() {
-    if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
-    }
-}
-
-function checarVencimentos(produtos) {
-    if (!("Notification" in window) || Notification.permission !== "granted") return;
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    produtos.forEach(item => {
-        if (!item.validade) return;
-        let dataValidade = null;
-
-        if (item.validade.includes('/')) {
-            const [dia, mes, ano] = item.validade.split('/');
-            dataValidade = new Date(ano, mes - 1, dia);
-        } else if (item.validade.includes('-')) {
-            const [ano, mes, dia] = item.validade.split('-');
-            dataValidade = new Date(ano, mes - 1, dia);
-        }
-
-        if (dataValidade) {
-            dataValidade.setHours(0, 0, 0, 0);
-            const diferencaTempo = dataValidade.getTime() - hoje.getTime();
-            const diasRestantes = Math.ceil(diferencaTempo / (1000 * 3600 * 24));
-
-            if (diasRestantes === 5 || diasRestantes === 3 || diasRestantes === 1) {
-                new Notification("Alerta de Vencimento", {
-                    body: `O alimento "${item.nome}" vence em ${diasRestantes} dia(s) (${formatarDataBR(item.validade)})`,
-                    icon: item.fotoBase64 || ""
-                });
-            }
-        }
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker registado com sucesso:', reg.scope))
+            .catch(err => console.error('Falha ao registar o Service Worker:', err));
     });
 }
-
-window.buscarDoacaoMapa = function(termo = "banco de alimentos doacao") {
-    const query = encodeURIComponent(termo);
-    window.open(`https://www.google.com/maps/search/${query}`, '_blank');
-};
 
 /* =============================================================
-   CÓDIGO PRINCIPAL DA APLICAÇÃO
+   2. FUNÇÕES AUXILIARES DE DATAS E STATUS
+   ============================================================= */
+
+// Formata a data ISO (AAAA-MM-DD) para o formato brasileiro/português (DD/MM/AAAA)
+function formatarDataBR(dataIso) {
+    if (!dataIso) return '';
+    const partes = dataIso.split('-');
+    if (partes.length !== 3) return dataIso;
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+// Calcula quantos dias faltam para a data de validade vencer
+function calcularDiasRestantes(dataValidadeIso) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const partes = dataValidadeIso.split('-');
+    const dataValidade = new Date(partes[0], partes[1] - 1, partes[2]);
+    dataValidade.setHours(0, 0, 0, 0);
+
+    const diferencaMs = dataValidade.getTime() - hoje.getTime();
+    return Math.ceil(diferencaMs / (1000 * 60 * 60 * 24));
+}
+
+// Retorna a classe CSS e o texto explicativo conforme os dias restantes
+function obterStatusValidade(dias) {
+    if (dias < 0) {
+        return { classe: 'status-vermelho', texto: `Vencido há ${Math.abs(dias)} dia(s)` };
+    } else if (dias <= 3) {
+        return { classe: 'status-vermelho', texto: `Vence em ${dias} dia(s) (Crítico)` };
+    } else if (dias <= 7) {
+        return { classe: 'status-amarelo', texto: `Vence em ${dias} dia(s) (Atenção)` };
+    } else {
+        return { classe: 'status-verde', texto: `Vence em ${dias} dia(s) (Ok)` };
+    }
+}
+
+// Ordena o stock para que os alimentos mais próximos do vencimento fiquem no topo
+function ordenarEstoquePorValidade(lista) {
+    return lista.sort((a, b) => {
+        const dataA = new Date(a.validade);
+        const dataB = new Date(b.validade);
+        return dataA - dataB;
+    });
+}
+
+/* =============================================================
+   3. ESTADO GLOBAL DA APLICAÇÃO
+   ============================================================= */
+let estoque = JSON.parse(localStorage.getItem('desperdicioZero_estoque')) || [];
+let usuarioLogado = JSON.parse(localStorage.getItem('desperdicioZero_usuario')) || null;
+let fotoCapturadaBase64 = null;
+let streamCamera = null;
+
+/* =============================================================
+   4. INICIALIZAÇÃO E MAPEAMENTO DOS ELEMENTOS DO DOM
    ============================================================= */
 document.addEventListener('DOMContentLoaded', () => {
-    solicitarPermissaoNotificacao();
 
-    // Elementos da Interface
-    const authSection = document.getElementById('authSection');
-    const appSection = document.getElementById('appSection');
-    const authForm = document.getElementById('authForm');
-    const authName = document.getElementById('authName');
-    const nameFieldGroup = document.getElementById('nameFieldGroup');
-    const authEmail = document.getElementById('authEmail');
-    const authPassword = document.getElementById('authPassword');
-    const authTitle = document.getElementById('authTitle');
-    const authSubmitBtn = document.getElementById('authSubmitBtn');
-    const toggleAuthMode = document.getElementById('toggleAuthMode');
-    const toggleText = document.getElementById('toggleText');
-    const userHeader = document.getElementById('userHeader');
-    const userNameDisplay = document.getElementById('userNameDisplay');
-    const userEmail = document.getElementById('userEmail');
+    // Ecrãs Principais
+    const screenAuth = document.getElementById('screen-auth');
+    const screenApp = document.getElementById('screen-app');
+
+    // Elementos de Autenticação / Perfil
+    const userProfileBox = document.getElementById('userProfileBox');
     const userAvatar = document.getElementById('userAvatar');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    const btnLogout = document.getElementById('btnLogout');
+    const formAuth = document.getElementById('formAuth');
+    const authEmail = document.getElementById('authEmail');
+    const authSenha = document.getElementById('authSenha');
+    const btnLoginSubmit = document.getElementById('btnLoginSubmit');
+    const btnRegisterSubmit = document.getElementById('btnRegisterSubmit');
 
-    const tabScanner = document.getElementById('tabScanner');
-    const tabInventory = document.getElementById('tabInventory');
-    const tabDonation = document.getElementById('tabDonation');
-    const viewScanner = document.getElementById('viewScanner');
-    const viewInventory = document.getElementById('viewInventory');
-    const viewDonation = document.getElementById('viewDonation');
-    const inventoryList = document.getElementById('inventoryList');
+    // Navegação por Abas
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-    const startCameraBtn = document.getElementById('startCameraBtn');
-    const stopCameraBtn = document.getElementById('stopCameraBtn');
-    const cameraStartBox = document.getElementById('cameraStartBox');
+    // Módulo da Câmara e Formulário de Cadastro
+    const btnAbrirCamera = document.getElementById('btnAbrirCamera');
+    const btnCapturarFoto = document.getElementById('btnCapturarFoto');
+    const btnFecharCamera = document.getElementById('btnFecharCamera');
+    const btnNovaFoto = document.getElementById('btnNovaFoto');
     const cameraActiveBox = document.getElementById('cameraActiveBox');
-    const cameraVideo = document.getElementById('cameraVideo');
-    const cameraCanvas = document.getElementById('cameraCanvas');
-    const captureBtn = document.getElementById('captureBtn');
+    const videoFeed = document.getElementById('videoFeed');
+    const canvasHidden = document.getElementById('canvasHidden');
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
     const imagePreview = document.getElementById('imagePreview');
-    const retakeBtn = document.getElementById('retakeBtn');
-    const productForm = document.getElementById('productForm');
-    const loadingMessage = document.getElementById('loading');
+    const formAlimento = document.getElementById('formAlimento');
+    const nomeAlimento = document.getElementById('nomeAlimento');
+    const obsAlimento = document.getElementById('obsAlimento');
+    const validadeAlimento = document.getElementById('validadeAlimento');
 
-    let isLoginMode = true;
-    let videoStream = null;
-    let capturedBase64Image = ""; 
-    let unsubscribeInventory = null;
+    // Módulo de Stock e Receitas
+    const inventoryGrid = document.getElementById('inventoryGrid');
+    const btnBuscarReceitas = document.getElementById('btnBuscarReceitas');
 
-    /* --- AUTENTICAÇÃO --- */
-    function validarForm() {
-        if (!authEmail || !authPassword) return;
-        const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail.value.trim());
-        const senhaValida = authPassword.value.length >= 6;
-        const nomeValido = isLoginMode || (authName && authName.value.trim().length > 0);
-        if (authSubmitBtn) {
-            authSubmitBtn.disabled = !(emailValido && senhaValida && nomeValido);
-        }
-    }
+    // Módulo de Doação
+    const btnMapaGeral = document.getElementById('btnMapaGeral');
+    const btnsDoarLink = document.querySelectorAll('.btn-doar-link');
+    const btnsDoarBusca = document.querySelectorAll('.btn-doar-busca');
 
-    if (authEmail) authEmail.addEventListener('input', validarForm);
-    if (authPassword) authPassword.addEventListener('input', validarForm);
-    if (authName) authName.addEventListener('input', validarForm);
+    /* =============================================================
+       5. LÓGICA DE AUTENTICAÇÃO (LOGIN / REGISTO / LOGOUT)
+       ============================================================= */
+    function verificarSessao() {
+        if (usuarioLogado) {
+            if (screenAuth) screenAuth.classList.add('hidden');
+            if (screenApp) screenApp.classList.remove('hidden');
+            if (userProfileBox) userProfileBox.classList.remove('hidden');
 
-    if (toggleAuthMode) {
-        toggleAuthMode.addEventListener('click', (e) => {
-            e.preventDefault();
-            isLoginMode = !isLoginMode;
-            if (authTitle) authTitle.innerText = isLoginMode ? "Acesse sua Conta" : "Criar Nova Conta";
-            if (authSubmitBtn) authSubmitBtn.innerText = isLoginMode ? "Entrar" : "Cadastrar";
-            if (toggleText) toggleText.innerText = isLoginMode ? "Não tem uma conta?" : "Já tem uma conta?";
-            toggleAuthMode.innerText = isLoginMode ? "Cadastre-se aqui" : "Entre aqui";
-            
-            if (nameFieldGroup) {
-                if (isLoginMode) {
-                    nameFieldGroup.classList.add('hidden');
-                } else {
-                    nameFieldGroup.classList.remove('hidden');
-                }
-            }
-            validarForm();
-        });
-    }
-
-    if (authForm) {
-        authForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = authEmail.value.trim();
-            const password = authPassword.value;
-
-            if (authSubmitBtn) {
-                authSubmitBtn.disabled = true;
-                authSubmitBtn.innerText = "Aguarde...";
-            }
-
-            if (isLoginMode) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .catch((err) => {
-                        alert("Erro de autenticação: " + err.message);
-                        if (authSubmitBtn) authSubmitBtn.innerText = "Entrar";
-                        validarForm();
-                    });
-            } else {
-                const nomeDigitado = authName ? authName.value.trim() : "";
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        return userCredential.user.updateProfile({
-                            displayName: nomeDigitado
-                        });
-                    })
-                    .then(() => {
-                        if (authSubmitBtn) authSubmitBtn.innerText = "Cadastrar";
-                    })
-                    .catch((err) => {
-                        alert("Erro ao cadastrar: " + err.message);
-                        if (authSubmitBtn) authSubmitBtn.innerText = "Cadastrar";
-                        validarForm();
-                    });
-            }
-        });
-    }
-
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            if (authSection) authSection.classList.add('hidden');
-            if (appSection) appSection.classList.remove('hidden');
-            if (userHeader) userHeader.classList.remove('hidden');
-            
-            const nomeExibicao = user.displayName || user.email.split('@')[0];
-            const inicial = nomeExibicao.charAt(0).toUpperCase();
-
-            if (userNameDisplay) userNameDisplay.innerText = nomeExibicao;
-            if (userEmail) userEmail.innerText = user.email;
-            if (userAvatar) userAvatar.innerText = inicial;
-
-            if (productForm) productForm.classList.remove('hidden'); 
-            carregarEstoque(user.uid);
+            if (userName) userName.textContent = usuarioLogado.nome || 'Utilizador';
+            if (userEmail) userEmail.textContent = usuarioLogado.email || '';
+            if (userAvatar) userAvatar.textContent = (usuarioLogado.nome || 'U').charAt(0).toUpperCase();
         } else {
-            if (authSection) authSection.classList.remove('hidden');
-            if (appSection) appSection.classList.add('hidden');
-            if (userHeader) userHeader.classList.add('hidden');
-            if (unsubscribeInventory) unsubscribeInventory();
-            stopCamera();
+            if (screenAuth) screenAuth.classList.remove('hidden');
+            if (screenApp) screenApp.classList.add('hidden');
+            if (userProfileBox) userProfileBox.classList.add('hidden');
         }
+    }
+
+    if (formAuth) {
+        formAuth.addEventListener('submit', (e) => {
+            e.preventDefault();
+            fazerLogin();
+        });
+    }
+
+    if (btnRegisterSubmit) {
+        btnRegisterSubmit.addEventListener('click', () => {
+            fazerLogin();
+        });
+    }
+
+    function fazerLogin() {
+        const emailVal = authEmail ? authEmail.value.trim() : '';
+        if (!emailVal) return;
+
+        const nomeExtraido = emailVal.split('@')[0];
+        usuarioLogado = {
+            nome: nomeExtraido.charAt(0).toUpperCase() + nomeExtraido.slice(1),
+            email: emailVal
+        };
+
+        localStorage.setItem('desperdicioZero_usuario', JSON.stringify(usuarioLogado));
+        verificarSessao();
+    }
+
+    if (btnLogout) {
+        btnLogout.addEventListener('click', () => {
+            usuarioLogado = null;
+            localStorage.removeItem('desperdicioZero_usuario');
+            verificarSessao();
+        });
+    }
+
+    /* =============================================================
+       6. NAVEGAÇÃO ENTRE ABAS
+       ============================================================= */
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+
+            tabButtons.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.add('hidden'));
+
+            btn.classList.add('active');
+            const activeSection = document.getElementById(`aba-${targetTab}`);
+            if (activeSection) activeSection.classList.remove('hidden');
+        });
     });
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            auth.signOut();
+    /* =============================================================
+       7. CONTROLO DA CÂMARA EM ALTA RESOLUÇÃO
+       ============================================================= */
+    if (btnAbrirCamera) {
+        btnAbrirCamera.addEventListener('click', async () => {
+            try {
+                streamCamera = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+                videoFeed.srcObject = streamCamera;
+                btnAbrirCamera.classList.add('hidden');
+                cameraActiveBox.classList.remove('hidden');
+            } catch (err) {
+                alert('Não foi possível abrir a câmara: ' + err.message);
+            }
         });
     }
 
-    /* --- NAVEGAÇÃO DE ABAS --- */
-    function esconderTodasAbas() {
-        if (viewScanner) viewScanner.classList.add('hidden');
-        if (viewInventory) viewInventory.classList.add('hidden');
-        if (viewDonation) viewDonation.classList.add('hidden');
+    if (btnCapturarFoto) {
+        btnCapturarFoto.addEventListener('click', () => {
+            canvasHidden.width = 1280;
+            canvasHidden.height = 720;
+            const ctx = canvasHidden.getContext('2d');
+            ctx.drawImage(videoFeed, 0, 0, canvasHidden.width, canvasHidden.height);
 
-        if (tabScanner) tabScanner.classList.remove('active');
-        if (tabInventory) tabInventory.classList.remove('active');
-        if (tabDonation) tabDonation.classList.remove('active');
-    }
+            fotoCapturadaBase64 = canvasHidden.toDataURL('image/jpeg', 0.85);
+            imagePreview.src = fotoCapturadaBase64;
 
-    if (tabScanner) {
-        tabScanner.addEventListener('click', () => {
-            esconderTodasAbas();
-            tabScanner.classList.add('active');
-            if (viewScanner) viewScanner.classList.remove('hidden');
+            encerrarCamera();
+            cameraActiveBox.classList.add('hidden');
+            imagePreviewContainer.classList.remove('hidden');
         });
     }
 
-    if (tabInventory) {
-        tabInventory.addEventListener('click', () => {
-            esconderTodasAbas();
-            tabInventory.classList.add('active');
-            if (viewInventory) viewInventory.classList.remove('hidden');
-            stopCamera();
+    if (btnFecharCamera) {
+        btnFecharCamera.addEventListener('click', () => {
+            encerrarCamera();
+            cameraActiveBox.classList.add('hidden');
+            btnAbrirCamera.classList.remove('hidden');
         });
     }
 
-    if (tabDonation) {
-        tabDonation.addEventListener('click', () => {
-            esconderTodasAbas();
-            tabDonation.classList.add('active');
-            if (viewDonation) viewDonation.classList.remove('hidden');
-            stopCamera();
+    if (btnNovaFoto) {
+        btnNovaFoto.addEventListener('click', () => {
+            fotoCapturadaBase64 = null;
+            imagePreviewContainer.classList.add('hidden');
+            if (btnAbrirCamera) btnAbrirCamera.click();
         });
     }
 
-    /* --- GERENCIAMENTO DE ESTOQUE --- */
-    window.buscarReceitaCombinada = function() {
-        const selecionados = document.querySelectorAll('.item-checkbox:checked');
-        if (selecionados.length === 0) {
-            alert("Selecione pelo menos um alimento da lista para buscar receitas.");
+    function encerrarCamera() {
+        if (streamCamera) {
+            streamCamera.getTracks().forEach(track => track.stop());
+            streamCamera = null;
+        }
+    }
+
+    /* =============================================================
+       8. ADICIONAR E RENDERIZAR ESTOQUE
+       ============================================================= */
+    if (formAlimento) {
+        formAlimento.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const nome = nomeAlimento.value.trim();
+            const obs = obsAlimento.value.trim();
+            const validade = validadeAlimento.value;
+
+            if (!nome || !validade) return;
+
+            const novoItem = {
+                id: Date.now(),
+                nome: nome,
+                observacao: obs,
+                validade: validade,
+                imagem: fotoCapturadaBase64
+            };
+
+            estoque.push(novoItem);
+            salvarERenderizar();
+
+            formAlimento.reset();
+            fotoCapturadaBase64 = null;
+            if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+            if (btnAbrirCamera) btnAbrirCamera.classList.remove('hidden');
+
+            const tabEstoque = document.querySelector('[data-tab="estoque"]');
+            if (tabEstoque) tabEstoque.click();
+        });
+    }
+
+    function renderizarEstoque() {
+        if (!inventoryGrid) return;
+        inventoryGrid.innerHTML = '';
+
+        if (estoque.length === 0) {
+            inventoryGrid.innerHTML = `<p class="subtitle" style="grid-column: 1/-1; text-align: center; padding: 20px;">O seu stock está vazio. Adicione alimentos na aba "Escanear Alimento".</p>`;
             return;
         }
 
-        const ingredientes = Array.from(selecionados).map(cb => cb.dataset.nome);
-        const termoBusca = encodeURIComponent(`receita com ${ingredientes.join(' e ')}`);
-        window.open(`https://www.tudogostoso.com.br/busca?q=${termoBusca}`, '_blank');
-    };
+        // Ordena para exibir produtos perto de vencer primeiro
+        const estoqueOrdenado = ordenarEstoquePorValidade([...estoque]);
 
-    window.deletarItem = function(id) {
-        if (confirm("Deseja realmente remover este item do seu estoque?")) {
-            db.collection('produtos').doc(id).delete();
-        }
-    };
+        estoqueOrdenado.forEach(item => {
+            const dias = calcularDiasRestantes(item.validade);
+            const statusInfo = obterStatusValidade(dias);
+            const dataFormatada = formatarDataBR(item.validade);
 
-    function carregarEstoque(userId) {
-        if (!inventoryList) return;
-
-        unsubscribeInventory = db.collection('produtos')
-            .where('userId', '==', userId)
-            .onSnapshot((snapshot) => {
-                inventoryList.innerHTML = '';
-                const listaProdutos = [];
-
-                if (snapshot.empty) {
-                    inventoryList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 20px;">Nenhum alimento cadastrado no momento.</p>';
-                    return;
+            const card = document.createElement('div');
+            card.className = `inventory-card ${statusInfo.classe}`;
+            card.innerHTML = `
+                <div class="inventory-card-header">
+                    <input type="checkbox" class="item-checkbox" value="${escapeHtml(item.nome)}">
+                    <button type="button" class="btn-delete" data-id="${item.id}">Excluir</button>
+                </div>
+                ${item.imagem 
+                    ? `<img src="${item.imagem}" alt="${escapeHtml(item.nome)}">` 
+                    : `<div class="no-image-placeholder">Sem Imagem</div>`
                 }
+                <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 4px;">${escapeHtml(item.nome)}</h4>
+                <p style="font-size: 0.85rem; opacity: 0.9;">${item.observacao ? escapeHtml(item.observacao) : 'Sem observações'}</p>
+                <span class="badge-validade">${statusInfo.texto} (${dataFormatada})</span>
+            `;
 
-                const barHTML = `
-                    <div class="multi-select-bar">
-                        <span style="font-size: 0.875rem; color: #374151;">Selecione os alimentos para buscar combinações:</span>
-                        <button class="btn-recipe" onclick="buscarReceitaCombinada()">Buscar Receitas</button>
-                    </div>
-                `;
-                inventoryList.insertAdjacentHTML('beforeend', barHTML);
-
-                snapshot.forEach((doc) => {
-                    const item = doc.data();
-                    listaProdutos.push(item);
-
-                    const dataFormatada = formatarDataBR(item.validade);
-                    const statusClasse = obterClasseStatusValidade(item.validade);
-
-                    const card = document.createElement('div');
-                    card.className = `inventory-card ${statusClasse}`;
-
-                  const imgHTML = item.fotoBase64 
-    ? `<img src="${item.fotoBase64}" alt="${item.nome}">`
-    : `<div class="no-image-placeholder">Sem Imagem</div>`;
-
-                    card.innerHTML = `
-                        <div class="inventory-card-header">
-                            <input type="checkbox" class="item-checkbox" data-nome="${item.nome}" title="Selecionar item">
-                            <button type="button" class="btn-delete" onclick="deletarItem('${doc.id}')">Excluir</button>
-                        </div>
-                        ${imgHTML}
-                        <h4 style="margin: 4px 0; color: #111827; font-size:1rem;">${item.nome}</h4>
-                        <p style="font-size:0.85rem; color:#6b7280; margin-bottom:12px; flex-grow: 1;">${item.descricao || 'Sem observações'}</p>
-                        <span class="badge-date">Validade: ${dataFormatada}</span>
-                    `;
-                    inventoryList.appendChild(card);
-                });
-
-                checarVencimentos(listaProdutos);
-
-            }, (err) => {
-                console.error("Erro ao carregar estoque:", err);
+            // Botão de exclusão
+            const btnExcluir = card.querySelector('.btn-delete');
+            btnExcluir.addEventListener('click', () => {
+                excluirItem(item.id);
             });
-    }
 
-    /* --- CÂMERA E OCR --- */
-    if (startCameraBtn) {
-        startCameraBtn.addEventListener('click', async () => {
-            try {
-                videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        facingMode: "environment",
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    }
-                });
-                if (cameraVideo) cameraVideo.srcObject = videoStream;
-                if (cameraStartBox) cameraStartBox.classList.add('hidden');
-                if (cameraActiveBox) cameraActiveBox.classList.remove('hidden');
-                if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
-                if (productForm) productForm.classList.add('hidden');
-            } catch (err) {
-                alert("Acesso à câmera não permitido ou indisponível.");
-            }
+            inventoryGrid.appendChild(card);
         });
     }
 
-    function stopCamera() {
-        if (videoStream) {
-            videoStream.getTracks().forEach(track => track.stop());
-            videoStream = null;
-        }
-        if (cameraActiveBox) cameraActiveBox.classList.add('hidden');
-        if (cameraStartBox) cameraStartBox.classList.remove('hidden');
+    window.excluirItem = function(id) {
+        estoque = estoque.filter(item => item.id !== id);
+        salvarERenderizar();
+    };
+
+    function salvarERenderizar() {
+        localStorage.setItem('desperdicioZero_estoque', JSON.stringify(estoque));
+        renderizarEstoque();
     }
 
-    if (stopCameraBtn) stopCameraBtn.addEventListener('click', stopCamera);
+    /* =============================================================
+       9. RECEITAS E DOAÇÕES
+       ============================================================= */
+    if (btnBuscarReceitas) {
+        btnBuscarReceitas.addEventListener('click', () => {
+            const selecionados = Array.from(document.querySelectorAll('.item-checkbox:checked'))
+                .map(cb => cb.value);
 
-    if (captureBtn) {
-        captureBtn.addEventListener('click', () => {
-            if (!cameraCanvas || !cameraVideo) return;
-            const ctx = cameraCanvas.getContext('2d');
-            
-            const targetWidth = 320;
-            const targetHeight = (cameraVideo.videoHeight / cameraVideo.videoWidth) * targetWidth || 240;
-
-            cameraCanvas.width = targetWidth;
-            cameraCanvas.height = targetHeight;
-
-            ctx.drawImage(cameraVideo, 0, 0, targetWidth, targetHeight);
-
-            capturedBase64Image = cameraCanvas.toDataURL('image/jpeg', 0.5);
-            if (imagePreview) imagePreview.src = capturedBase64Image;
-
-            stopCamera();
-            if (cameraStartBox) cameraStartBox.classList.add('hidden');
-            if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
-            if (loadingMessage) loadingMessage.classList.remove('hidden');
-
-            if (typeof Tesseract !== 'undefined') {
-                Tesseract.recognize(capturedBase64Image, 'por', {
-                    tessedit_char_whitelist: '0123456789/-.'
-                }).then(({ data: { text } }) => {
-                    if (loadingMessage) loadingMessage.classList.add('hidden');
-                    if (productForm) productForm.classList.remove('hidden');
-
-                    const dateMatch = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/);
-                    if (dateMatch) {
-                        const expiryInput = document.getElementById('expiryDate');
-                        if (expiryInput) {
-                            const partes = dateMatch[0].replace(/-/g, '/').split('/');
-                            if (partes.length === 3) {
-                                let ano = partes[2];
-                                if (ano.length === 2) ano = "20" + ano;
-                                expiryInput.value = `${ano}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                            }
-                        }
-                    }
-                }).catch(() => {
-                    if (loadingMessage) loadingMessage.classList.add('hidden');
-                    if (productForm) productForm.classList.remove('hidden');
-                });
-            } else {
-                if (loadingMessage) loadingMessage.classList.add('hidden');
-                if (productForm) productForm.classList.remove('hidden');
-            }
-        });
-    }
-
-    if (retakeBtn) {
-        retakeBtn.addEventListener('click', () => {
-            if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
-            if (productForm) productForm.classList.add('hidden');
-            capturedBase64Image = "";
-            if (startCameraBtn) startCameraBtn.click();
-        });
-    }
-
-    /* --- SALVAMENTO DE PRODUTO --- */
-    if (productForm) {
-        productForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const saveBtn = document.getElementById('saveProductBtn');
-            if (saveBtn) {
-                saveBtn.innerText = "Salvando...";
-                saveBtn.disabled = true;
-            }
-
-            const user = auth.currentUser;
-            if (!user) {
-                alert("Sessão expirada. Faça login novamente.");
-                if (saveBtn) {
-                    saveBtn.innerText = "Salvar no Estoque";
-                    saveBtn.disabled = false;
-                }
+            if (selecionados.length === 0) {
+                alert('Selecione pelo menos um alimento da lista para pesquisar receitas.');
                 return;
             }
 
-            const expiryInput = document.getElementById('expiryDate');
-            const rawValidade = expiryInput ? expiryInput.value : '';
-            const nameInput = document.getElementById('productName');
-            const descInput = document.getElementById('productDescription');
-            
-            let foiCancelado = false;
-            const timerSeguranca = setTimeout(() => {
-                foiCancelado = true;
-                if (saveBtn) {
-                    saveBtn.innerText = "Salvar no Estoque";
-                    saveBtn.disabled = false;
-                }
-                alert("O envio demorou muito. Verifique sua conexão com a internet.");
-            }, 10000);
-
-            db.collection('produtos').add({
-                nome: nameInput ? nameInput.value.trim() : '',
-                descricao: descInput ? descInput.value.trim() : '',
-                validade: formatarDataBR(rawValidade),
-                fotoBase64: capturedBase64Image || "",
-                userId: user.uid,
-                dataCriacao: new Date().toISOString()
-            }).then(() => {
-                clearTimeout(timerSeguranca);
-                if (foiCancelado) return;
-
-                productForm.reset();
-                capturedBase64Image = "";
-                
-                if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
-                if (cameraStartBox) cameraStartBox.classList.remove('hidden');
-                
-                if (saveBtn) {
-                    saveBtn.innerText = "Salvar no Estoque";
-                    saveBtn.disabled = false;
-                }
-                
-                if (tabInventory) tabInventory.click();
-            }).catch((err) => {
-                clearTimeout(timerSeguranca);
-                if (foiCancelado) return;
-
-                if (saveBtn) {
-                    saveBtn.innerText = "Salvar no Estoque";
-                    saveBtn.disabled = false;
-                }
-                alert("Erro do Firebase: " + err.message);
-            });
+            const termo = encodeURIComponent('receitas com ' + selecionados.join(' '));
+            window.open(`https://www.google.com/search?q=${termo}`, '_blank');
         });
     }
+
+    if (btnMapaGeral) {
+        btnMapaGeral.addEventListener('click', () => {
+            window.open('https://www.google.com/maps/search/banco+de+alimentos+proximo', '_blank');
+        });
+    }
+
+    btnsDoarLink.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const url = e.target.getAttribute('data-url');
+            if (url) window.open(url, '_blank');
+        });
+    });
+
+    btnsDoarBusca.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const query = e.target.getAttribute('data-query');
+            if (query) {
+                window.open(`https://www.google.com/maps/search/${encodeURIComponent(query)}`, '_blank');
+            }
+        });
+    });
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+    }
+
+    // Inicializa a sessão e carrega a lista ao abrir a app
+    verificarSessao();
+    renderizarEstoque();
 });
