@@ -16,6 +16,9 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+/* =============================================================
+   FUNÇÕES DE SUPORTE E UTILITÁRIOS
+   ============================================================= */
 function formatarDataBR(dataString) {
     if (!dataString) return 'Data não informada';
     if (dataString.includes('-')) {
@@ -71,6 +74,9 @@ window.buscarDoacaoMapa = function(termo = "banco de alimentos doacao") {
     window.open(`https://www.google.com/maps/search/${query}`, '_blank');
 };
 
+/* =============================================================
+   INICIALIZAÇÃO DO SISTEMA
+   ============================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     solicitarPermissaoNotificacao();
 
@@ -117,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let capturedBase64Image = ""; 
     let unsubscribeInventory = null;
 
+    /* AUTENTICAÇÃO */
     function validarForm() {
         const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail.value.trim());
         const senhaValida = authPassword.value.length >= 6;
@@ -212,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         auth.signOut();
     });
 
+    /* NAVEGAÇÃO DE ABAS */
     function esconderTodasAbas() {
         if (viewScanner) viewScanner.classList.add('hidden');
         if (viewInventory) viewInventory.classList.add('hidden');
@@ -248,6 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /* ESTOQUE E ACOES DE ITENS */
     window.buscarReceitaCombinada = function() {
         const selecionados = document.querySelectorAll('.item-checkbox:checked');
         if (selecionados.length === 0) {
@@ -321,11 +330,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    /* CAMERA E PROCESSAMENTO OCR OTIMIZADO */
     if (startCameraBtn) {
         startCameraBtn.addEventListener('click', async () => {
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "environment" }
+                    video: { 
+                        facingMode: "environment",
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
                 });
                 cameraVideo.srcObject = videoStream;
                 cameraStartBox.classList.add('hidden');
@@ -353,13 +367,17 @@ document.addEventListener('DOMContentLoaded', () => {
         captureBtn.addEventListener('click', () => {
             const ctx = cameraCanvas.getContext('2d');
             
-            cameraCanvas.width = 450;
-            cameraCanvas.height = 320;
+            /* Otimização de tamanho da imagem (Máximo 320px de largura) */
+            const targetWidth = 320;
+            const targetHeight = (cameraVideo.videoHeight / cameraVideo.videoWidth) * targetWidth || 240;
 
-            ctx.filter = 'none';
-            ctx.drawImage(cameraVideo, 0, 0, 450, 320);
+            cameraCanvas.width = targetWidth;
+            cameraCanvas.height = targetHeight;
 
-            capturedBase64Image = cameraCanvas.toDataURL('image/jpeg', 0.85);
+            ctx.drawImage(cameraVideo, 0, 0, targetWidth, targetHeight);
+
+            /* Compressão JPEG com 50% de qualidade para manter o arquivo leve */
+            capturedBase64Image = cameraCanvas.toDataURL('image/jpeg', 0.5);
             imagePreview.src = capturedBase64Image;
 
             stopCamera();
@@ -367,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             imagePreviewContainer.classList.remove('hidden');
             if (loadingMessage) loadingMessage.classList.remove('hidden');
 
+            /* OCR Otimizado */
             Tesseract.recognize(capturedBase64Image, 'por', {
                 tessedit_char_whitelist: '0123456789/-.'
             }).then(({ data: { text } }) => {
@@ -400,6 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /* SALVAMENTO NO FIRESTORE COM TIMEOUT DE SEGURANÇA */
     if (productForm) {
         productForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -408,17 +428,35 @@ document.addEventListener('DOMContentLoaded', () => {
             saveBtn.disabled = true;
 
             const user = auth.currentUser;
-            const currentUserId = user ? user.uid : "anonimo";
+            if (!user) {
+                alert("Sessão expirada. Por favor, faça login novamente.");
+                saveBtn.innerText = "Salvar no Estoque";
+                saveBtn.disabled = false;
+                return;
+            }
+
             const rawValidade = document.getElementById('expiryDate').value;
+            
+            /* Temporizador para cancelar a tentativa se exceder 8 segundos */
+            let foiCancelado = false;
+            const timerSeguranca = setTimeout(() => {
+                foiCancelado = true;
+                saveBtn.innerText = "Salvar no Estoque";
+                saveBtn.disabled = false;
+                alert("O envio demorou muito. Verifique sua conexão com a internet ou se o banco de dados Firebase está ativo.");
+            }, 8000);
 
             db.collection('produtos').add({
-                nome: document.getElementById('productName').value,
-                descricao: document.getElementById('productDescription').value,
+                nome: document.getElementById('productName').value.trim(),
+                descricao: document.getElementById('productDescription').value.trim(),
                 validade: formatarDataBR(rawValidade),
                 fotoBase64: capturedBase64Image,
-                userId: currentUserId,
+                userId: user.uid,
                 dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
+                clearTimeout(timerSeguranca);
+                if (foiCancelado) return;
+
                 productForm.reset();
                 capturedBase64Image = "";
                 
@@ -430,9 +468,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (tabInventory) tabInventory.click();
             }).catch((err) => {
-                alert("Erro ao salvar alimento: " + err.message);
+                clearTimeout(timerSeguranca);
+                if (foiCancelado) return;
+
                 saveBtn.innerText = "Salvar no Estoque";
                 saveBtn.disabled = false;
+                alert("Erro ao salvar no banco de dados: " + err.message);
             });
         });
     }
