@@ -15,7 +15,7 @@ body {
 }
 
 /* =============================================================
-   CABEÇALHO E PERFIL DO USUÁRIO
+   CABEÇALHO E PERFIL DO UTILIZADOR
    ============================================================= */
 .app-header {
     background-color: #ffffff;
@@ -178,7 +178,7 @@ input[type="date"]:focus {
 }
 
 /* =============================================================
-   SISTEMA DE BOTÕES E AÇÕES
+   BOTÕES E NAVEGAÇÃO
    ============================================================= */
 .btn-primary, .btn-secondary, .btn-recipe, .btn-delete {
     display: inline-flex;
@@ -228,9 +228,6 @@ input[type="date"]:focus {
     background-color: #a7f3d0;
 }
 
-/* =============================================================
-   NAVEGAÇÃO POR ABAS
-   ============================================================= */
 .tabs-navigation {
     display: flex;
     gap: 8px;
@@ -266,7 +263,7 @@ input[type="date"]:focus {
 }
 
 /* =============================================================
-   GRID E CARTÕES DE ESTOQUE
+   GRID E CARTÕES DO ESTOQUE
    ============================================================= */
 .multi-select-bar {
     background: #ffffff;
@@ -291,12 +288,12 @@ input[type="date"]:focus {
     padding: 16px;
     display: flex;
     flex-direction: column;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.15s ease;
 }
 
 .inventory-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 
 .inventory-card-header {
@@ -307,9 +304,9 @@ input[type="date"]:focus {
 }
 
 .item-checkbox {
-    width: 18px;
-    height: 18px;
-    accent-color: #059669;
+    width: 20px;
+    height: 20px;
+    accent-color: #ffffff;
     cursor: pointer;
 }
 
@@ -321,46 +318,49 @@ input[type="date"]:focus {
     margin-bottom: 12px;
 }
 
-/* PLACEHOLDER QUANDO NÃO HÁ IMAGEM (Adapta-se ao fundo da caixa) */
+/* PLACEHOLDER QUANDO NÃO HÁ IMAGEM */
 .no-image-placeholder {
     height: 140px;
-    background-color: rgba(255, 255, 255, 0.45);
+    background-color: rgba(255, 255, 255, 0.22);
     border-radius: 8px;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(0, 0, 0, 0.35);
-    font-size: 0.85rem;
-    border: 1px dashed rgba(0, 0, 0, 0.08);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 2px dashed rgba(255, 255, 255, 0.4);
 }
 
-/* BOTÃO DE EXCLUIR SUAVE DENTRO DOS CARTÕES */
+/* BOTÃO EXCLUIR NO CARTÃO */
 .inventory-card .btn-delete {
-    background-color: rgba(255, 255, 255, 0.6);
-    color: #7f1d1d;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 4px 10px;
-    font-size: 0.8rem;
+    background-color: #ffffff;
+    color: #991b1b;
+    border: none;
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+    font-weight: 700;
     border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .inventory-card .btn-delete:hover {
-    background-color: #ffffff;
+    background-color: #fef2f2;
 }
 
 .badge-date, .badge-validade {
-    display: inline-block;
+    display: block;
     padding: 8px 12px;
     border-radius: 8px;
-    font-size: 0.8125rem;
-    font-weight: 600;
+    font-size: 0.875rem;
+    font-weight: 700;
     margin-top: auto;
     text-align: center;
 }
 
 /* =============================================================
-   MÓDULO DE DOAÇÃO
+   MÓDULO DE DOAÇÃO E OUTROS
    ============================================================= */
 .donation-grid {
     display: grid;
@@ -390,9 +390,6 @@ input[type="date"]:focus {
     flex-grow: 1;
 }
 
-/* =============================================================
-   AUTENTICAÇÃO, CÂMERA E UTILITÁRIOS
-   ============================================================= */
 .auth-toggle {
     margin-top: 16px;
     text-align: center;
@@ -441,74 +438,68 @@ video, #imagePreview {
 }
 
 /* =============================================================
-   PALETA ECOLÓGICA E SUAVE (SEM CORES NEON OU BORDAS PONTUDAS)
+   STATUS DE VALIDADE (CORES VIVAS, SÓLIDAS E DE ELEVADA ACESSIBILIDADE)
    ============================================================= */
 
-/* VERDE: Mais de 20 dias (Sálvia Suave) */
+/* VERDE: Mais de 20 dias (Verde "Seu Estoque" - #059669) */
 .inventory-card.status-verde,
 .card-item.status-verde {
-    background-color: #eaf2eb !important;
-    border: 1px solid #c3d8c7 !important;
+    background-color: #059669 !important;
+    border: 2px solid #047857 !important;
+    color: #ffffff !important;
 }
 
-.inventory-card.status-verde h4 {
-    color: #1c3b2b !important;
-}
-
+.inventory-card.status-verde h4,
 .inventory-card.status-verde p {
-    color: #3d5a4a !important;
+    color: #ffffff !important;
 }
 
 .inventory-card.status-verde .badge-date,
 .inventory-card.status-verde .badge-validade,
 .card-item.status-verde .badge-validade {
-    background-color: #d2e5d6 !important;
-    color: #1c3b2b !important;
-    border: 1px solid #b7d5bd !important;
+    background-color: #047857 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-/* AMARELO: Entre 10 e 20 dias (Trigo / Areia Suave) */
+/* AMARELO: Entre 10 e 20 dias (Âmbar Vivo - #d97706) */
 .inventory-card.status-amarelo,
 .card-item.status-amarelo {
-    background-color: #f7f3e8 !important;
-    border: 1px solid #e6dac0 !important;
+    background-color: #d97706 !important;
+    border: 2px solid #b45309 !important;
+    color: #ffffff !important;
 }
 
-.inventory-card.status-amarelo h4 {
-    color: #4d3f22 !important;
-}
-
+.inventory-card.status-amarelo h4,
 .inventory-card.status-amarelo p {
-    color: #635332 !important;
+    color: #ffffff !important;
 }
 
 .inventory-card.status-amarelo .badge-date,
 .inventory-card.status-amarelo .badge-validade,
 .card-item.status-amarelo .badge-validade {
-    background-color: #ebdcc2 !important;
-    color: #4d3f22 !important;
-    border: 1px solid #dfcba9 !important;
+    background-color: #b45309 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-/* VERMELHO: Menos de 10 dias (Terracota / Argila Suave) */
+/* VERMELHO: Menos de 10 dias (Vermelho Marcante - #dc2626) */
 .inventory-card.status-vermelho,
 .card-item.status-vermelho {
-    background-color: #f8ece9 !important;
-    border: 1px solid #e8c8c4 !important;
+    background-color: #dc2626 !important;
+    border: 2px solid #b91c1c !important;
+    color: #ffffff !important;
 }
 
-.inventory-card.status-vermelho h4 {
-    color: #5c2425 !important;
-}
-
+.inventory-card.status-vermelho h4,
 .inventory-card.status-vermelho p {
-    color: #733c3e !important;
+    color: #ffffff !important;
 }
 
 .inventory-card.status-vermelho .badge-date,
 .inventory-card.status-vermelho .badge-validade,
 .card-item.status-vermelho .badge-validade {
-    background-color: #eccdc9 !important;
-    color: #5c2425 !important;
-    border: 1px solid #dfb3ad !important;
+    background-color: #b91c1c !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
