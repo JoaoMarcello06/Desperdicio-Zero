@@ -1,3 +1,4 @@
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -11,7 +12,9 @@ body {
     line-height: 1.5;
 }
 
-/* CABEÇALHO E PERFIL DO USUÁRIO */
+/* =============================================================
+   CABEÇALHO E PERFIL DO USUÁRIO
+   ============================================================= */
 .app-header {
     background-color: #ffffff;
     padding: 16px 28px;
@@ -99,7 +102,9 @@ body {
     background-color: #fee2e2;
 }
 
-/* CONTAINERS E CARDS */
+/* =============================================================
+   CONTAINERS E CARDS
+   ============================================================= */
 .container {
     max-width: 900px;
     margin: 0 auto;
@@ -128,7 +133,9 @@ body {
     margin-bottom: 20px;
 }
 
-/* FORMULÁRIOS */
+/* =============================================================
+   FORMULÁRIOS E INPUTS
+   ============================================================= */
 form {
     display: flex;
     flex-direction: column;
@@ -168,7 +175,9 @@ input[type="date"]:focus {
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
 
-/* SISTEMA DE BOTÕES VERDE ECOLÓGICO */
+/* =============================================================
+   SISTEMA DE BOTÕES E AÇÕES
+   ============================================================= */
 .btn-primary, .btn-secondary, .btn-recipe, .btn-delete {
     display: inline-flex;
     align-items: center;
@@ -229,7 +238,9 @@ input[type="date"]:focus {
     background-color: #fef2f2;
 }
 
-/* NAVEGAÇÃO POR ABAS */
+/* =============================================================
+   NAVEGAÇÃO POR ABAS
+   ============================================================= */
 .tabs-navigation {
     display: flex;
     gap: 8px;
@@ -264,7 +275,9 @@ input[type="date"]:focus {
     font-weight: 600;
 }
 
-/* GRID E CARDS DE ESTOQUE */
+/* =============================================================
+   GRID E CARTÕES DE ESTOQUE
+   ============================================================= */
 .multi-select-bar {
     background: #ffffff;
     border: 1px solid #e5e7eb;
@@ -290,6 +303,7 @@ input[type="date"]:focus {
     border: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .inventory-card-header {
@@ -314,18 +328,22 @@ input[type="date"]:focus {
     margin-bottom: 12px;
 }
 
-.badge-date {
+.badge-date, .badge-validade {
     display: inline-block;
     background-color: #f0fdf4;
     border: 1px solid #dcfce7;
     color: #065f46;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 6px 10px;
+    border-radius: 6px;
     font-size: 0.8125rem;
+    font-weight: 600;
     margin-top: auto;
+    text-align: center;
 }
 
-/* DOAÇÃO */
+/* =============================================================
+   MÓDULO DE DOAÇÃO
+   ============================================================= */
 .donation-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -354,6 +372,9 @@ input[type="date"]:focus {
     flex-grow: 1;
 }
 
+/* =============================================================
+   AUTENTICAÇÃO, CÂMERA E UTILITÁRIOS
+   ============================================================= */
 .auth-toggle {
     margin-top: 16px;
     text-align: center;
@@ -401,29 +422,51 @@ video, #imagePreview {
     display: none !important;
 }
 
+/* =============================================================
+   STATUS DE VALIDADE DOS ALIMENTOS (CORES DINÂMICAS)
+   ============================================================= */
+
+/* Verde: Mais de 20 dias para vencer */
+.inventory-card.status-verde,
 .card-item.status-verde {
-    border: 2px solid #a3e635;
-    background-color: #f7fee7;
+    border: 2px solid #86efac;
+    background-color: #f0fdf4;
 }
+
+.inventory-card.status-verde .badge-date,
+.inventory-card.status-verde .badge-validade,
 .card-item.status-verde .badge-validade {
     background-color: #dcfce7;
     color: #15803d;
+    border-color: #86efac;
 }
 
+/* Amarelo: Entre 10 e 20 dias para vencer */
+.inventory-card.status-amarelo,
 .card-item.status-amarelo {
     border: 2px solid #facc15;
     background-color: #fefce8;
 }
+
+.inventory-card.status-amarelo .badge-date,
+.inventory-card.status-amarelo .badge-validade,
 .card-item.status-amarelo .badge-validade {
     background-color: #fef08a;
     color: #a16207;
+    border-color: #fde047;
 }
 
+/* Vermelho: Menos de 10 dias para vencer */
+.inventory-card.status-vermelho,
 .card-item.status-vermelho {
     border: 2px solid #f87171;
     background-color: #fef2f2;
 }
+
+.inventory-card.status-vermelho .badge-date,
+.inventory-card.status-vermelho .badge-validade,
 .card-item.status-vermelho .badge-validade {
     background-color: #fee2e2;
     color: #b91c1c;
+    border-color: #fca5a5;
 }
