@@ -1,20 +1,34 @@
-const CACHE_NAME = 'pwa-cache-v1';
+const CACHE_NAME = 'desperdicio-zero-v3';
+
 const urlsToCache = [
   '/',
   '/index.html',
   '/styles.css',
   '/script.js',
-  '/icon-192.png'
+  '/manifest.json'
 ];
 
-// Instalar e guardar ficheiros em cache
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
 });
 
-// Interceptar pedidos para carregar do cache se estiver offline
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => response || fetch(event.request))
