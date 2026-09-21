@@ -1,4 +1,6 @@
-
+/* =============================================================
+   RESET E CONFIGURAÇÕES GERAIS
+   ============================================================= */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -227,15 +229,15 @@ input[type="date"]:focus {
 }
 
 .btn-delete {
-    background-color: #ffffff;
-    color: #dc2626;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #b91c1c;
     border-color: #fca5a5;
     padding: 6px 12px;
     font-size: 0.8125rem;
 }
 
 .btn-delete:hover {
-    background-color: #fef2f2;
+    background-color: #ffffff;
 }
 
 /* =============================================================
@@ -297,13 +299,16 @@ input[type="date"]:focus {
 }
 
 .inventory-card {
-    background: #ffffff;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 16px;
-    border: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.inventory-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .inventory-card-header {
@@ -324,16 +329,13 @@ input[type="date"]:focus {
     width: 100%;
     height: 140px;
     object-fit: cover;
-    border-radius: 6px;
+    border-radius: 8px;
     margin-bottom: 12px;
 }
 
 .badge-date, .badge-validade {
     display: inline-block;
-    background-color: #f0fdf4;
-    border: 1px solid #dcfce7;
-    color: #065f46;
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 6px;
     font-size: 0.8125rem;
     font-weight: 600;
@@ -423,50 +425,74 @@ video, #imagePreview {
 }
 
 /* =============================================================
-   STATUS DE VALIDADE DOS ALIMENTOS (CORES DINÂMICAS)
+   STATUS DE VALIDADE (CORES INTEIÇAS - PEGADA ECOLÓGICA E SUAVE)
    ============================================================= */
 
-/* Verde: Mais de 20 dias para vencer */
+/* VERDE: Mais de 20 dias (Verde Sálvia Suave) */
 .inventory-card.status-verde,
 .card-item.status-verde {
-    border: 2px solid #86efac;
-    background-color: #f0fdf4;
+    background-color: #e8f0e6 !important;
+    border: 1px solid #c2d6c1 !important;
+}
+
+.inventory-card.status-verde h4 {
+    color: #1b382b !important;
+}
+
+.inventory-card.status-verde p {
+    color: #3b5c4bf0 !important;
 }
 
 .inventory-card.status-verde .badge-date,
 .inventory-card.status-verde .badge-validade,
 .card-item.status-verde .badge-validade {
-    background-color: #dcfce7;
-    color: #15803d;
-    border-color: #86efac;
+    background-color: #cbe0ce !important;
+    color: #1b382b !important;
+    border: 1px solid #b3d1b7 !important;
 }
 
-/* Amarelo: Entre 10 e 20 dias para vencer */
+/* AMARELO: Entre 10 e 20 dias (Âmbar Ocre / Trigo Orgânico) */
 .inventory-card.status-amarelo,
 .card-item.status-amarelo {
-    border: 2px solid #facc15;
-    background-color: #fefce8;
+    background-color: #f7f1e1 !important;
+    border: 1px solid #ebd8b3 !important;
+}
+
+.inventory-card.status-amarelo h4 {
+    color: #4a3e21 !important;
+}
+
+.inventory-card.status-amarelo p {
+    color: #635330 !important;
 }
 
 .inventory-card.status-amarelo .badge-date,
 .inventory-card.status-amarelo .badge-validade,
 .card-item.status-amarelo .badge-validade {
-    background-color: #fef08a;
-    color: #a16207;
-    border-color: #fde047;
+    background-color: #ebdcb9 !important;
+    color: #4a3e21 !important;
+    border: 1px solid #dec89c !important;
 }
 
-/* Vermelho: Menos de 10 dias para vencer */
+/* VERMELHO: Menos de 10 dias (Terracota / Argila Suave) */
 .inventory-card.status-vermelho,
 .card-item.status-vermelho {
-    border: 2px solid #f87171;
-    background-color: #fef2f2;
+    background-color: #f6eae8 !important;
+    border: 1px solid #e5c5c3 !important;
+}
+
+.inventory-card.status-vermelho h4 {
+    color: #5c2223 !important;
+}
+
+.inventory-card.status-vermelho p {
+    color: #783a3c !important;
 }
 
 .inventory-card.status-vermelho .badge-date,
 .inventory-card.status-vermelho .badge-validade,
 .card-item.status-vermelho .badge-validade {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border-color: #fca5a5;
+    background-color: #eacac8 !important;
+    color: #5c2223 !important;
+    border: 1px solid #ddb3b1 !important;
 }
