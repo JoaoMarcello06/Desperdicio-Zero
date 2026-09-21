@@ -352,9 +352,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const card = document.createElement('div');
                     card.className = `inventory-card ${statusClasse}`;
 
-                    const imgHTML = item.fotoBase64 
-                        ? `<img src="${item.fotoBase64}" alt="${item.nome}">`
-                        : `<div style="height:140px; background:#f3f4f6; border-radius:6px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; color:#9ca3af; font-size:0.875rem;">Sem Imagem</div>`;
+                  const imgHTML = item.fotoBase64 
+    ? `<img src="${item.fotoBase64}" alt="${item.nome}">`
+    : `<div class="no-image-placeholder">Sem Imagem</div>`;
 
                     card.innerHTML = `
                         <div class="inventory-card-header">
