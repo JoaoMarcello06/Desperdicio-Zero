@@ -8,10 +8,15 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-body {
+html, body {
+    width: 100%;
+    min-height: 100dvh; /* Ocupa 100% da altura real do ecrã no telemóvel */
+    display: flex;
+    flex-direction: column;
     background-color: #f4f7f5;
     color: #111827;
     line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
 }
 
 /* =============================================================
@@ -19,13 +24,14 @@ body {
    ============================================================= */
 .app-header {
     background-color: #ffffff;
-    padding: 16px 28px;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #e5e7eb;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+    width: 100%;
 }
 
 .brand {
@@ -50,16 +56,16 @@ body {
 .user-profile {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     background-color: #f0fdf4;
     border: 1px solid #dcfce7;
-    padding: 6px 14px;
+    padding: 6px 12px;
     border-radius: 40px;
 }
 
 .user-avatar {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background-color: #059669;
     color: #ffffff;
@@ -67,7 +73,8 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    flex-shrink: 0;
 }
 
 .user-info {
@@ -76,14 +83,14 @@ body {
 }
 
 .user-name {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #064e3b;
     line-height: 1.2;
 }
 
 .user-email {
-    font-size: 0.75rem;
+    font-size: 0.725rem;
     color: #047857;
 }
 
@@ -108,6 +115,8 @@ body {
    CONTAINERS E CARDS
    ============================================================= */
 .container {
+    flex: 1; /* Preenche a altura restante da página evitando espaços vazios no fundo */
+    width: 100%;
     max-width: 900px;
     margin: 0 auto;
     padding: 0 16px 40px 16px;
@@ -116,23 +125,23 @@ body {
 .card {
     background: #ffffff;
     border-radius: 12px;
-    padding: 28px;
+    padding: 20px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     border: 1px solid #e5e7eb;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .card h2, .section-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #064e3b;
     margin-bottom: 8px;
 }
 
 .subtitle {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: #4b5563;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 /* =============================================================
@@ -160,6 +169,7 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"] {
+    width: 100%;
     padding: 11px 14px;
     border-radius: 8px;
     border: 1px solid #d1d5db;
@@ -228,26 +238,35 @@ input[type="date"]:focus {
     background-color: #a7f3d0;
 }
 
+/* Navegação por Abas com Scroll Horizontal para Telemóveis */
 .tabs-navigation {
     display: flex;
     gap: 8px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 12px;
+    padding-bottom: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tabs-navigation::-webkit-scrollbar {
+    display: none; /* Esconde a barra de scroll feia no mobile */
 }
 
 .tab-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     background: transparent;
     border: none;
-    padding: 10px 18px;
-    font-size: 0.9rem;
+    padding: 10px 16px;
+    font-size: 0.875rem;
     font-weight: 500;
     color: #4b5563;
     cursor: pointer;
     border-radius: 8px;
+    flex-shrink: 0;
     transition: color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -268,9 +287,9 @@ input[type="date"]:focus {
 .multi-select-bar {
     background: #ffffff;
     border: 1px solid #e5e7eb;
-    padding: 12px 18px;
+    padding: 12px 16px;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -279,7 +298,7 @@ input[type="date"]:focus {
 
 .inventory-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 16px;
 }
 
@@ -290,6 +309,7 @@ input[type="date"]:focus {
     flex-direction: column;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     transition: transform 0.15s ease;
+    word-break: break-word;
 }
 
 .inventory-card:hover {
@@ -312,25 +332,28 @@ input[type="date"]:focus {
 
 .inventory-card img {
     width: 100%;
-    height: 140px;
+    height: 120px;
     object-fit: cover;
     border-radius: 8px;
     margin-bottom: 12px;
 }
 
-/* PLACEHOLDER QUANDO NÃO HÁ IMAGEM */
+/* PLACEHOLDER DISCRETO E AJUSTADO QUANDO NÃO HÁ IMAGEM */
 .no-image-placeholder {
-    height: 140px;
-    background-color: rgba(255, 255, 255, 0.22);
+    width: 100%;
+    height: 120px;
+    background-color: rgba(0, 0, 0, 0.15);
     border-radius: 8px;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    border: 2px dashed rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1.5px dashed rgba(255, 255, 255, 0.5);
 }
 
 /* BOTÃO EXCLUIR NO CARTÃO */
@@ -353,9 +376,9 @@ input[type="date"]:focus {
     display: block;
     padding: 8px 12px;
     border-radius: 8px;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    margin-top: auto;
+    margin-top: 12px;
     text-align: center;
 }
 
@@ -372,7 +395,7 @@ input[type="date"]:focus {
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 20px;
+    padding: 18px;
     display: flex;
     flex-direction: column;
 }
@@ -380,7 +403,7 @@ input[type="date"]:focus {
 .donation-card h3 {
     margin-bottom: 8px;
     color: #064e3b;
-    font-size: 1.05rem;
+    font-size: 1rem;
 }
 
 .donation-card p {
@@ -441,13 +464,13 @@ video, #imagePreview {
    STATUS DE VALIDADE (CORES FORTES E VIVAS DE ALTA VISIBILIDADE)
    ============================================================= */
 
-/* --- VERDE (#059669 - Mesma cor do botão 'Seu Estoque') --- */
+/* --- VERDE (#059669) --- */
 .status-verde,
 .inventory-card.status-verde,
 .cartao-de-inventario.status-verde,
 .cartão-de-inventário.status-verde {
     background-color: #059669 !important;
-    border: 3px solid #047857 !important;
+    border: 2px solid #047857 !important;
     color: #ffffff !important;
 }
 
@@ -462,13 +485,13 @@ video, #imagePreview {
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
-/* --- AMARELO / ÂMBAR DOURADO (#D97706 - Alto Contraste) --- */
+/* --- AMARELO / ÂMBAR DOURADO (#D97706) --- */
 .status-amarelo,
 .inventory-card.status-amarelo,
 .cartao-de-inventario.status-amarelo,
 .cartão-de-inventário.status-amarelo {
     background-color: #d97706 !important;
-    border: 3px solid #b45309 !important;
+    border: 2px solid #b45309 !important;
     color: #ffffff !important;
 }
 
@@ -483,13 +506,13 @@ video, #imagePreview {
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
-/* --- VERMELHO VIVO (#DC2626 - Alerta Claro) --- */
+/* --- VERMELHO VIVO (#DC2626) --- */
 .status-vermelho,
 .inventory-card.status-vermelho,
 .cartao-de-inventario.status-vermelho,
 .cartão-de-inventário.status-vermelho {
     background-color: #dc2626 !important;
-    border: 3px solid #b91c1c !important;
+    border: 2px solid #b91c1c !important;
     color: #ffffff !important;
 }
 
@@ -504,7 +527,7 @@ video, #imagePreview {
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
-/* --- BOTÃO DE EXCLUIR E CAMPO 'SEM IMAGEM' EM CARTÕES COLORIDOS --- */
+/* --- ELEMENTOS DENTRO DOS CARTÕES COLORIDOS --- */
 .status-verde .btn-delete,
 .status-amarelo .btn-delete,
 .status-vermelho .btn-delete {
@@ -517,8 +540,29 @@ video, #imagePreview {
 .status-verde .no-image-placeholder,
 .status-amarelo .no-image-placeholder,
 .status-vermelho .no-image-placeholder {
-    background-color: rgba(0, 0, 0, 0.18) !important;
+    background-color: rgba(0, 0, 0, 0.15) !important;
     color: #ffffff !important;
-    border: 2px dashed rgba(255, 255, 255, 0.5) !important;
+    border: 1.5px dashed rgba(255, 255, 255, 0.5) !important;
     font-weight: 600 !important;
+}
+
+/* =============================================================
+   RESPONSIVIDADE EXTRA PARA TELEMÓVEIS
+   ============================================================= */
+@media (max-width: 600px) {
+    .app-header {
+        padding: 12px 16px;
+    }
+    
+    .brand-name {
+        font-size: 1.1rem;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .inventory-grid {
+        grid-template-columns: 1fr; /* 1 card por linha no telemóvel para visualização ideal */
+    }
 }
