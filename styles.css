@@ -400,3 +400,30 @@ video, #imagePreview {
 .hidden {
     display: none !important;
 }
+
+.card-item.status-verde {
+    border: 2px solid #a3e635;
+    background-color: #f7fee7;
+}
+.card-item.status-verde .badge-validade {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.card-item.status-amarelo {
+    border: 2px solid #facc15;
+    background-color: #fefce8;
+}
+.card-item.status-amarelo .badge-validade {
+    background-color: #fef08a;
+    color: #a16207;
+}
+
+.card-item.status-vermelho {
+    border: 2px solid #f87171;
+    background-color: #fef2f2;
+}
+.card-item.status-vermelho .badge-validade {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
