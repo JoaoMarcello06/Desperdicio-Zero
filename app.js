@@ -419,23 +419,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* SALVAMENTO NO FIRESTORE COM TIMEOUT DE SEGURANÇA */
-    if (productForm) {
-        productForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const saveBtn = document.getElementById('saveProductBtn');
-            saveBtn.innerText = "Salvando...";
-            saveBtn.disabled = true;
+/* SALVAMENTO OTIMIZADO NO FIRESTORE */
+if (productForm) {
+    productForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const saveBtn = document.getElementById('saveProductBtn');
+        saveBtn.innerText = "Salvando...";
+        saveBtn.disabled = true;
 
-            const user = auth.currentUser;
-            if (!user) {
-                alert("Sessão expirada. Por favor, faça login novamente.");
-                saveBtn.innerText = "Salvar no Estoque";
-                saveBtn.disabled = false;
-                return;
-            }
+        const user = auth.currentUser;
+        if (!user) {
+            alert("Sessão expirada. Faça login novamente.");
+            saveBtn.innerText = "Salvar no Estoque";
+            saveBtn.disabled = false;
+            return;
+        }
 
-            const rawValidade = document.getElementById('expiryDate').value;
+        const rawValidade = document.getElementById('expiryDate').value;
+        
+        let foiCancelado = false;
+        const timerSeguranca = setTimeout(() => {
+            foiCancelado = true;
+            saveBtn.innerText = "Salvar no Estoque";
+            saveBtn.disabled = false;
+            alert("O envio demorou muito. Verifique a sua ligação ou tente salvar sem foto.");
+        }, 12000);
+
+        db.collection('produtos').add({
+            nome: document.getElementById('productName').value.trim(),
+            descricao: document.getElementById('productDescription').value.trim(),
+            validade: formatarDataBR(rawValidade),
+            fotoBase64: capturedBase64Image || "",
+            userId: user.uid,
+            dataCriacao: new Date().toISOString()
+        }).then(() => {
+            clearTimeout(timerSeguranca);
+            if (foiCancelado) return;
+
+            productForm.reset();
+            capturedBase64Image = "";
+            
+            if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+            if (cameraStartBox) cameraStartBox.classList.remove('hidden');
+            
+            saveBtn.innerText = "Salvar no Estoque";
+            saveBtn.disabled = false;
+            
+            if (tabInventory) tabInventory.click();
+        }).catch((err) => {
+            clearTimeout(timerSeguranca);
+            if (foiCancelado) return;
+
+            saveBtn.innerText = "Salvar no Estoque";
+            saveBtn.disabled = false;
+            alert("Erro do Firebase: " + err.message);
+        });
+    });
+}
             
             /* Temporizador para cancelar a tentativa se exceder 8 segundos */
             let foiCancelado = false;
